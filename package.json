@@ -1,4 +1,4 @@
- json{
+{
   "name": "financas-pessoais",
   "version": "1.0.0",
   "private": true,
@@ -16,4 +16,3 @@
     "vite": "^4.4.0"
   }
 }
-
