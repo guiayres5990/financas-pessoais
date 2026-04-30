@@ -219,7 +219,7 @@ export default function App() {
         {/* Seletor mes/ano */}
         <div style={{display:"flex", gap:8, marginBottom:"1.25rem", alignItems:"center", flexWrap:"wrap"}}>
           {[["dashboard","📊 Visão geral"],["lancamento","➕ Lançar"],["historico","📋 Histórico"]].map(([v,l])=>(
-            <button key={v} onClick={()=>setView(v)} style={{padding:"8px 16px", borderRadius:20, border:"none", cursor:"pointer", fontSize:13, fontWeight:500, background:view===v?"linear-gradient(135deg,#4ECDC4,#45B7D1)":"#1a1a24", color:view===v?"#0f0f13":"#888", border:view===v?"none":"1px solid #ffffff10"}}>
+            <button key={v} onClick={()=>setView(v)} style={{padding:"8px 16px", borderRadius:20, cursor:"pointer", fontSize:13, fontWeight:500, background:view===v?"linear-gradient(135deg,#4ECDC4,#45B7D1)":"#1a1a24", color:view===v?"#0f0f13":"#888", border:view===v?"none":"1px solid #ffffff10"}}>
               {l}
             </button>
           ))}
