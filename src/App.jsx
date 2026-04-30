@@ -170,7 +170,7 @@ export default function App() {
   if (!user) return (
     <div style={{...s.page, display:"flex", alignItems:"center", justifyContent:"center", padding:"1rem"}}>
       <style>{`@keyframes fadeIn{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}@keyframes spin{to{transform:rotate(360deg)}}`}</style>
-      <div style={{...s.card, width:"100%", maxWidth:400, animation:"fadeIn .4s ease"}}>
+      <div style={{...s.card, width:"100%", maxWidth:400, animation:"fadeIn .4s ease", overflowY:"auto", maxHeight:"90vh"}}>
         <div style={{textAlign:"center", marginBottom:"2rem"}}>
           <div style={{fontSize:40, marginBottom:8}}>💰</div>
           <h1 style={{fontSize:22, fontWeight:700, margin:"0 0 4px", background:"linear-gradient(135deg,#4ECDC4,#45B7D1)", WebkitBackgroundClip:"text", WebkitTextFillColor:"transparent"}}>Finanças Pessoais</h1>
