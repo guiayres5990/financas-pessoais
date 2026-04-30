@@ -1,8 +1,10 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect(() => {
+  getRedirectResult(auth).catch(() => {});
+}, []);, useRef } from "react";
 import { auth, db } from "./firebase";
 import {
   createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut,
-  onAuthStateChanged, sendPasswordResetEmail, GoogleAuthProvider, signInWithPopup
+  onAuthStateChanged, sendPasswordResetEmail, GoogleAuthProvider, signInWithPopup, signInWithRedirect, getRedirectResult
 } from "firebase/auth";
 import { collection, addDoc, deleteDoc, doc, onSnapshot, query, where, orderBy } from "firebase/firestore";
 
@@ -146,14 +148,15 @@ export default function App() {
   }
 
   async function handleGoogle() {
-    setAuthErr(""); setAuthLoading(true);
-    try {
-      await signInWithPopup(auth, new GoogleAuthProvider());
-    } catch(e) {
-      setAuthErr("Erro ao entrar com Google. Tente novamente.");
-    }
+  setAuthErr(""); setAuthLoading(true);
+  try {
+    const provider = new GoogleAuthProvider();
+    await signInWithRedirect(auth, provider);
+  } catch(e) {
+    setAuthErr("Erro ao entrar com Google. Tente novamente.");
     setAuthLoading(false);
   }
+}
 
   async function addTx() {
     const v = parseFloat(form.valor.replace(",","."));
