@@ -1,12 +1,12 @@
-import { useState, useEffect(() => {
-  getRedirectResult(auth).catch(() => {});
-}, []);, useRef } from "react";
+import { useState, useEffect, useRef } from "react";
 import { auth, db } from "./firebase";
 import {
   createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut,
-  onAuthStateChanged, sendPasswordResetEmail, GoogleAuthProvider, signInWithPopup, signInWithRedirect, getRedirectResult
+  onAuthStateChanged, sendPasswordResetEmail, GoogleAuthProvider,
+  signInWithRedirect, getRedirectResult
 } from "firebase/auth";
 import { collection, addDoc, deleteDoc, doc, onSnapshot, query, where, orderBy } from "firebase/firestore";
+import Relatorio from "./Relatorio";
 
 const CATS = [
   { id: "alimentacao", label: "Alimentação", color: "#FF6B6B" },
@@ -62,6 +62,10 @@ export default function App() {
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, u => { setUser(u); setLoading(false); });
     return unsub;
+  }, []);
+
+  useEffect(() => {
+    getRedirectResult(auth).catch(() => {});
   }, []);
 
   useEffect(() => {
@@ -148,15 +152,14 @@ export default function App() {
   }
 
   async function handleGoogle() {
-  setAuthErr(""); setAuthLoading(true);
-  try {
-    const provider = new GoogleAuthProvider();
-    await signInWithRedirect(auth, provider);
-  } catch(e) {
-    setAuthErr("Erro ao entrar com Google. Tente novamente.");
-    setAuthLoading(false);
+    setAuthErr(""); setAuthLoading(true);
+    try {
+      await signInWithRedirect(auth, new GoogleAuthProvider());
+    } catch(e) {
+      setAuthErr("Erro ao entrar com Google.");
+      setAuthLoading(false);
+    }
   }
-}
 
   async function addTx() {
     const v = parseFloat(form.valor.replace(",","."));
@@ -196,19 +199,16 @@ export default function App() {
     <div style={{minHeight:"100vh", background:th.bg, display:"flex", alignItems:"center", justifyContent:"center", padding:"1rem"}}>
       <style>{`@keyframes fadeIn{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}@keyframes spin{to{transform:rotate(360deg)}}`}</style>
       <div style={{...card, width:"100%", maxWidth:400, animation:"fadeIn .4s ease"}}>
-
         <div style={{display:"flex", justifyContent:"flex-end", marginBottom:"1rem"}}>
           <button onClick={()=>setDark(d=>!d)} style={{background:"none", border:`1px solid ${th.border}`, borderRadius:8, padding:"6px 12px", cursor:"pointer", color:th.sub, fontSize:13}}>
             {dark ? "☀️ Claro" : "🌙 Escuro"}
           </button>
         </div>
-
         <div style={{textAlign:"center", marginBottom:"1.5rem"}}>
           <div style={{fontSize:40, marginBottom:8}}>💰</div>
           <h1 style={{fontSize:22, fontWeight:700, margin:"0 0 4px", background:th.accentGrad, WebkitBackgroundClip:"text", WebkitTextFillColor:"transparent"}}>Finanças Pessoais</h1>
           <p style={{color:th.sub, fontSize:13, margin:0}}>Controle seu dinheiro com inteligência</p>
         </div>
-
         {authMode !== "reset" && (
           <div style={{display:"flex", background:dark?"#0f0f13":"#f0f0f0", borderRadius:10, padding:4, marginBottom:"1.25rem"}}>
             {["login","cadastro"].map(m=>(
@@ -218,7 +218,6 @@ export default function App() {
             ))}
           </div>
         )}
-
         {authMode === "reset" && (
           <div style={{marginBottom:"1rem"}}>
             <button onClick={()=>{setAuthMode("login");setAuthErr("");setResetSent(false);}} style={{background:"none", border:"none", cursor:"pointer", color:th.sub, fontSize:13, padding:0}}>← Voltar</button>
@@ -226,7 +225,6 @@ export default function App() {
             <p style={{fontSize:12, color:th.sub, margin:0}}>Enviaremos um link para seu e-mail.</p>
           </div>
         )}
-
         {resetSent ? (
           <div style={{textAlign:"center", padding:"1rem", background:th.accent+"20", borderRadius:10}}>
             <p style={{color:th.accent, fontSize:14, margin:0}}>✅ E-mail enviado! Verifique sua caixa de entrada.</p>
@@ -241,7 +239,6 @@ export default function App() {
             <button onClick={handleAuth} disabled={authLoading} style={btn(th.accentGrad)}>
               {authLoading?"Aguarde...":authMode==="login"?"Entrar":authMode==="cadastro"?"Criar conta":"Enviar link de recuperação"}
             </button>
-
             {authMode !== "reset" && (
               <>
                 <div style={{display:"flex", alignItems:"center", gap:8}}>
@@ -292,19 +289,21 @@ export default function App() {
 
       <div style={{maxWidth:700, margin:"0 auto", padding:"1.25rem 1rem", animation:"fadeIn .3s ease"}}>
         <div style={{display:"flex", gap:8, marginBottom:"1.25rem", alignItems:"center", flexWrap:"wrap"}}>
-          {[["dashboard","📊 Visão geral"],["lancamento","➕ Lançar"],["historico","📋 Histórico"]].map(([v,l])=>(
+          {[["dashboard","📊 Visão geral"],["lancamento","➕ Lançar"],["historico","📋 Histórico"],["relatorio","📄 Relatório"]].map(([v,l])=>(
             <button key={v} onClick={()=>setView(v)} style={{padding:"8px 16px", borderRadius:20, cursor:"pointer", fontSize:13, fontWeight:500, background:view===v?th.accentGrad:th.card, color:view===v?"#fff":th.sub, border:view===v?"none":`1px solid ${th.border}`}}>
               {l}
             </button>
           ))}
-          <div style={{marginLeft:"auto", display:"flex", gap:6}}>
-            <select value={mes} onChange={e=>setMes(+e.target.value)} style={{...inp, width:"auto", padding:"6px 10px", fontSize:12}}>
-              {MONTHS.map((m,i)=><option key={i} value={i}>{m}</option>)}
-            </select>
-            <select value={ano} onChange={e=>setAno(+e.target.value)} style={{...inp, width:"auto", padding:"6px 10px", fontSize:12}}>
-              {[2023,2024,2025,2026].map(a=><option key={a} value={a}>{a}</option>)}
-            </select>
-          </div>
+          {view !== "relatorio" && (
+            <div style={{marginLeft:"auto", display:"flex", gap:6}}>
+              <select value={mes} onChange={e=>setMes(+e.target.value)} style={{...inp, width:"auto", padding:"6px 10px", fontSize:12}}>
+                {MONTHS.map((m,i)=><option key={i} value={i}>{m}</option>)}
+              </select>
+              <select value={ano} onChange={e=>setAno(+e.target.value)} style={{...inp, width:"auto", padding:"6px 10px", fontSize:12}}>
+                {[2023,2024,2025,2026].map(a=><option key={a} value={a}>{a}</option>)}
+              </select>
+            </div>
+          )}
         </div>
 
         {view==="dashboard" && (
@@ -317,7 +316,6 @@ export default function App() {
                 </div>
               ))}
             </div>
-
             <div style={{...card, marginBottom:"1.25rem", display:"flex", justifyContent:"space-between", alignItems:"center"}}>
               <div>
                 <p style={{fontSize:11, color:th.sub, margin:"0 0 4px", textTransform:"uppercase", letterSpacing:1}}>Projeção do mês</p>
@@ -325,7 +323,6 @@ export default function App() {
               </div>
               <p style={{fontSize:12, color:projecao>receitas?th.danger:th.accent, fontWeight:500, margin:0}}>{projecao>receitas?"⚠️ Acima da receita":"✅ No orçamento"}</p>
             </div>
-
             {porCat.length > 0 ? (
               <div style={{...card, marginBottom:"1.25rem"}}>
                 <p style={{fontSize:13, fontWeight:600, margin:"0 0 1rem", color:th.text}}>Despesas por categoria</p>
@@ -358,7 +355,6 @@ export default function App() {
                 <p style={{color:th.muted, margin:0}}>Nenhuma despesa neste mês.</p>
               </div>
             )}
-
             <div style={card}>
               <p style={{fontSize:13, fontWeight:600, margin:"0 0 .75rem", color:th.text}}>Últimos 6 meses</p>
               <div style={{display:"flex", gap:16, fontSize:11, color:th.sub, marginBottom:10}}>
@@ -414,6 +410,10 @@ export default function App() {
                 );
               })}
           </div>
+        )}
+
+        {view==="relatorio" && (
+          <Relatorio txs={txs} th={th} userEmail={user.email || user.displayName} />
         )}
       </div>
 
