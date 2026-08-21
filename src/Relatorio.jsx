@@ -59,7 +59,7 @@ export default function Relatorio({ txs, userEmail, privado, t = {} }) {
         posY += pageH;
       }
       pdf.save(`capital-hub-${br(dataInicio).replace(/\//g, "-")}-a-${br(dataFim).replace(/\//g, "-")}.pdf`);
-    } finally {
+    } catch(err) {
       setGerando(false);
     }
   }
