@@ -62,7 +62,7 @@ export default function Relatorio({ txs, userEmail, privado, t = {} }) {
     if (!txPeriodo.length) { alert("Nenhum lançamento no período."); return; }
     setGerando(true);
     try {
-      const pdf = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
+      const logoBase64 = await new Promise(r => {
       const W = 210, M = 14;
       let y = 0;
 
