@@ -24,7 +24,7 @@ export default function Relatorio({ txs, userEmail, privado, t = {} }) {
   const dias = Math.max(1, Math.ceil((new Date(dataFim) - new Date(dataInicio)) / 86400000) + 1);
   const maiorDespesa = Math.max(0, ...txPeriodo.filter(t => t.tipo === "despesa").map(t => t.valor));
 
-  const porCat = CATS
+  const porCat = CATS_BASE
     .map(c => ({
       ...c,
       total: txPeriodo.filter(t => t.tipo === "despesa" && t.cat === c.id).reduce((s, t) => s + t.valor, 0),
