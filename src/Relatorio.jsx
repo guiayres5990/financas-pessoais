@@ -58,7 +58,7 @@ export default function Relatorio({ txs, userEmail, privado, t = {} }) {
     return [r, g, b];
   }
 
-  async function gerarPDF() {
+  async function carregarImagem(src) {
     if (!txPeriodo.length) { alert("Nenhum lançamento no período."); return; }
     setGerando(true);
     try {
