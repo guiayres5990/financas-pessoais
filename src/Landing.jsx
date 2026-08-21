@@ -60,7 +60,7 @@ export default function Landing({ onEntrar, onCriarConta, dark, onToggleTheme, l
           <a href="#relatorio">{t.relatorio}</a>
           <LangPicker lang={lang} setLang={setLang} />
           <button className="btn btn-icon btn-secondary" onClick={onToggleTheme} title="Alternar tema">
-            <i className={dark ? "ph ph-sun" : "ph ph-moon"} style={{ fontSize: 16 }} />
+            {dark ? "☀️" : "🌙"} />
           </button>
           <button className="btn btn-secondary" onClick={onEntrar}>{t.entrar}</button>
           <button className="btn btn-primary" onClick={onCriarConta}>{t.criarContaGratis}</button>
