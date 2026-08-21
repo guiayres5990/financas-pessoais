@@ -1,10 +1,10 @@
 import { useState, useRef } from "react";
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
-import { CATS, fmt } from "./App";
+import { CATS_BASE, fmt } from "./App";
 
 const CICLOS = [1, 5, 10, 15, 20, 25];
-const cat = id => CATS.find(c => c.id === id) || CATS[CATS.length - 1];
+const cat = id => CATS_BASE.find(c => c.id === id) || CATS_BASE[CATS_BASE.length - 1];
 const br = iso => iso.split("-").reverse().join("/");
 
 export default function Relatorio({ txs, userEmail, privado, t = {} }) {
