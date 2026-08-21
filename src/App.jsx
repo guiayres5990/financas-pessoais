@@ -92,7 +92,7 @@ export default function App() {
   const [saving, setSaving] = useState(false);
 
   // traduções e categorias derivadas do idioma
-  const tr = T[lang] || T["pt"];
+  const tr = T[lang] || T[localStorage.getItem("fp_lang")] || T["pt"];
   const CATS = CATS_BASE.map(c => ({ ...c, label: tr[c.id] || c.id }));
   const getCat = id => CATS.find(c => c.id === id) || CATS[CATS.length - 1];
 
