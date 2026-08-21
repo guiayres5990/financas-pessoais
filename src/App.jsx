@@ -450,7 +450,7 @@ export default function App() {
                     <span><i style={{ background: "var(--color-negative-bar)" }} />{tr.despesas}</span>
                   </div>
                 </div>
-                <div className="bars">
+                <div className="bars" style={{ overflow: "hidden" }}>
                   {ultimos6.map((m, i) => (
                     <div className="col" key={i}>
                       <div className="pair">
