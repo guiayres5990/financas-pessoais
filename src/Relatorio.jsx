@@ -7,7 +7,7 @@ const CICLOS = [1, 5, 10, 15, 20, 25];
 const cat = id => CATS.find(c => c.id === id) || CATS[CATS.length - 1];
 const br = iso => iso.split("-").reverse().join("/");
 
-export default function Relatorio({ txs, userEmail, privado }) {
+export default function Relatorio({ txs, userEmail, privado, t = {} }) {
   const hoje = new Date();
   const [dataInicio, setDataInicio] = useState(() => new Date(hoje.getFullYear(), hoje.getMonth(), 1).toISOString().slice(0, 10));
   const [dataFim, setDataFim] = useState(() => hoje.toISOString().slice(0, 10));
