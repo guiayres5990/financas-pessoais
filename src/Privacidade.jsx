@@ -1,10 +1,9 @@
 import BrandMark from "./BrandMark";
 
 // Dados do responsável pela política (LGPD).
-// Quando o e-mail da FALC existir, preencha aqui, por exemplo: "contato@falc.com.br".
-// Enquanto estiver vazio, a página mostra "e-mail de contato em breve".
+// Se EMAIL_CONTATO ficar vazio, a página mostra "e-mail de contato em breve".
 const RESPONSAVEL = "Guilherme Falcão Eubank Ayres";
-const EMAIL_CONTATO = "";
+const EMAIL_CONTATO = "falc.empresa@gmail.com";
 
 // Troca {nome} e {email} pelo valor real; o e-mail vira um link clicável.
 function Item({ texto, t }) {

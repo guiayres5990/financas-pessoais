@@ -37,8 +37,22 @@ Não mude nome, cores ou fontes sem o dono pedir. Use os tokens CSS do `theme.cs
 - `src/App.jsx`: fluxo landing → login → app; views dashboard / lançar / histórico / relatório. Exporta `CATS_BASE` (moradia, alimentacao, transporte, lazer, saude, educacao, outros) e `fmt`. Seletor de idioma com bandeiras.
 - `src/Relatorio.jsx`: PDF por período, com jsPDF desenhando direto.
 - `src/i18n.js`: textos em PT / EN / ES (`T`, `LANGS`). **Todo texto novo deve existir nos 3 idiomas.**
+- `src/Privacidade.jsx`: Política de Privacidade (LGPD), página pública em `#/privacidade` (ver seção abaixo).
 - `src/Landing.jsx`, `src/BrandMark.jsx`, `src/theme.css`, `src/firebase.js`, `vercel.json`.
 - Gráficos: donut em CSS conic-gradient e barras em CSS (sem Chart.js).
+
+## Privacidade e LGPD (feito em nov/2026)
+
+- **Política de Privacidade** em `src/Privacidade.jsx`, aberta sem login em `/#/privacidade`. O App.jsx escuta o `hashchange` e mostra a página antes de qualquer outra tela; o "Voltar" limpa o hash e volta para onde a pessoa estava.
+  - Responsável (controlador): **Guilherme Falcão Eubank Ayres**. Contato: **falc.empresa@gmail.com**. Os dois ficam em constantes no topo do arquivo (`RESPONSAVEL`, `EMAIL_CONTATO`).
+  - O texto das 10 seções fica em `src/i18n.js` (`privSecoes`, com `{nome}` e `{email}` trocados pela página). Prazo de resposta informado: 15 dias. Ao mudar a política, atualize `privAtualizado` nos 3 idiomas.
+  - Links para a política: rodapé da Landing, embaixo do formulário de login e na barra lateral do app.
+- **Aceite no cadastro:** caixa "Li e concordo com a Política de Privacidade", obrigatória para criar conta por e-mail/senha e para o botão Google na aba "Criar conta".
+  - Brecha conhecida: o botão Google na aba "Entrar" pode criar uma conta nova sem o aceite.
+- **Excluir minha conta:** botão `btn-danger` na barra lateral, com diálogo em que a pessoa digita a palavra de confirmação (EXCLUIR / DELETE / ELIMINAR, conforme o idioma).
+  - Só segue se o último login (`metadata.lastSignInTime`) foi há menos de 5 minutos; senão pede para sair e entrar de novo.
+  - Ordem: apaga todos os docs de `transacoes` do uid (em lotes de até 400 com `writeBatch`), depois `deleteUser`, limpa as chaves `fp_*` do localStorage e volta para a Landing. Se apagar os lançamentos falhar, a conta NÃO é apagada.
+  - Testar só com conta de teste, nunca na conta principal do dono.
 
 ## Descontinuado
 
@@ -62,7 +76,7 @@ Não mude nome, cores ou fontes sem o dono pedir. Use os tokens CSS do `theme.cs
 
 ## Próximas tarefas
 
-1. Governança e segurança de dados: regras do Firestore mais rígidas (validar campos e tipos, negar o resto), Firebase App Check, política de privacidade (LGPD) e exclusão de conta/dados pelo próprio usuário.
+1. Segurança de dados (o que falta): regras do Firestore mais rígidas (validar campos e tipos, negar o resto) e Firebase App Check. Política de privacidade e exclusão de conta já foram feitas.
 2. Possível dimensão de educação financeira para estudantes.
 
 ## Como trabalhar
