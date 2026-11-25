@@ -320,7 +320,7 @@ export default function App() {
     let base = (u.displayName || "").trim().split(/\s+/)[0];
     if (!base) {
       const local = (u.email || "").split("@")[0];
-      base = local.split(/[^\p{L}]+/u).find(Boolean) || local; // "guilherme.falcao99" → "guilherme"
+      base = local.split(/[^\p{L}]+/u).find(Boolean) || local; // "joao.silva99" → "joao"
     }
     return (base.charAt(0).toUpperCase() + base.slice(1)).slice(0, 30);
   }

@@ -63,7 +63,10 @@ Não mude nome, cores ou fontes sem o dono pedir. Use os tokens CSS do `theme.cs
 
 - **Primeiro acesso** (sem `perfis/{uid}` ou sem apelido): diálogo obrigatório "Como você quer ser chamado?", já preenchido com o primeiro nome (displayName, ou o e-mail antes do @ cortado no primeiro ponto/número, com inicial maiúscula). Depois o apelido vem do banco (vale em qualquer aparelho).
 - **Página de Perfil** (menu da conta → Perfil), cards arredondados em coluna única:
-  - **Conta**: e-mail cadastrado (somente leitura), nome de exibição (1 a 30) com Salvar, avatar grande com "Trocar foto" / "Remover foto". No celular o avatar vai para cima dos campos.
+  - **Conta**: e-mail cadastrado (somente leitura), nome de exibição (1 a 30) com Salvar e o avatar grande, que é um `button` acessível (aria-label, foco visível, teclado). No celular o avatar vai para cima dos campos.
+    - Sem foto: mostra a inicial; no hover/foco aparece uma câmera; clicar abre direto o seletor de arquivo.
+    - Com foto: no hover/foco escurece e mostra um lápis; clicar abre um mini menu abaixo do avatar com "Mudar avatar" e "Remover avatar" (em `--color-negative`). Fecha com Esc, clique fora ou ao escolher.
+    - Trocar/remover salva na hora (sem botão Salvar), com "Salvando…" e aviso rápido de sucesso/erro. Remover grava o perfil sem o campo `foto`.
   - **Dados opcionais** (aviso com link para a Política): CPF com máscara e dígitos verificadores (depois de salvo aparece `***.***.***-XX` + botão Alterar), data de nascimento (não futura, no máximo 120 anos), telefone com máscara. Um botão "Salvar dados"; campo vazio = remove o dado antigo.
   - **Zona de perigo**: título em coral e botão "Excluir minha conta" (abre o diálogo de exclusão).
 - **Foto**: NÃO usa Firebase Storage. Aceita JPG/PNG/WebP até 5 MB; o navegador recorta o quadrado central, reduz para no máximo 256x256 e exporta JPEG 0.8, baixando qualidade/tamanho até ficar abaixo de 120.000 caracteres; grava como data URL em `perfis/{uid}.foto`. Aparece no chip da barra lateral, no cabeçalho do menu e no Perfil.
@@ -83,8 +86,8 @@ Não mude nome, cores ou fontes sem o dono pedir. Use os tokens CSS do `theme.cs
 ## Privacidade e LGPD (feito em nov/2026)
 
 - **Política de Privacidade** em `src/Privacidade.jsx`, aberta sem login em `/#/privacidade`. O App.jsx escuta o `hashchange` e mostra a página antes de qualquer outra tela; o "Voltar" limpa o hash e volta para onde a pessoa estava.
-  - Responsável (controlador): **Guilherme Falcão Eubank Ayres**. Contato: **falc.empresa@gmail.com**. Os dois ficam em constantes no topo do arquivo (`RESPONSAVEL`, `EMAIL_CONTATO`).
-  - O texto das 10 seções fica em `src/i18n.js` (`privSecoes`, com `{nome}` e `{email}` trocados pela página). Prazo de resposta informado: 15 dias. Ao mudar a política, atualize `privAtualizado` nos 3 idiomas.
+  - Responsável (controlador): o próprio projeto **FALC** (não citar nome de pessoa na política nem no código). Contato: **falc.empresa@gmail.com**, na constante `EMAIL_CONTATO` no topo do arquivo. Pedidos e dúvidas sempre orientam a "entrar em contato pelo e-mail de privacidade".
+  - O texto das 10 seções fica em `src/i18n.js` (`privSecoes`, com `{email}` trocado pela página). Prazo de resposta informado: 15 dias. Ao mudar a política, atualize `privAtualizado` nos 3 idiomas.
   - Links para a política: rodapé da Landing, embaixo do formulário de login, no menu da conta (Legal) e no card "Dados opcionais" do Perfil.
   - A seção 2 explica que CPF, nascimento, telefone e foto são opcionais; a seção 8 diz que a exclusão fica no Perfil, no fim da página.
 - **Aceite no cadastro:** caixa "Li e concordo com a Política de Privacidade", obrigatória para criar conta por e-mail/senha e para o botão Google na aba "Criar conta".

@@ -284,7 +284,21 @@ img { display: block; max-width: 100%; }
 .perfil-campos { display: grid; gap: 14px; min-width: 0; }
 .perfil-linha { display: flex; gap: 8px; min-width: 0; }
 .perfil-linha .input { flex: 1; }
-.perfil-avatar { display: grid; justify-items: center; gap: 8px; min-width: 160px; }
+.perfil-avatar { display: grid; justify-items: center; justify-self: center; gap: 8px; min-width: 160px; max-width: 220px; }
+/* avatar clicável: escurece e mostra lápis (com foto) ou câmera (sem foto) no hover/foco */
+.avatar-ancora { position: relative; }
+.avatar-botao { position: relative; display: block; padding: 0; border: none; border-radius: 50%; background: none; cursor: pointer; }
+.avatar-botao:focus-visible { outline: 2px solid var(--color-accent); outline-offset: 3px; }
+.avatar-botao[data-carregando="true"] { cursor: progress; }
+.avatar-sobre { position: absolute; inset: 0; display: grid; place-items: center; border-radius: 50%; background: rgba(0, 0, 0, 0.42); color: #fff; font-size: 24px; opacity: 0; transition: opacity 0.15s; pointer-events: none; }
+.avatar-botao:hover .avatar-sobre, .avatar-botao:focus-visible .avatar-sobre,
+.avatar-botao[aria-expanded="true"] .avatar-sobre, .avatar-botao[data-carregando="true"] .avatar-sobre { opacity: 1; }
+.avatar-girando { animation: falc-girar 0.9s linear infinite; }
+@keyframes falc-girar { to { transform: rotate(360deg); } }
+.avatar-menu { position: absolute; top: calc(100% + 8px); left: 50%; transform: translateX(-50%); min-width: 200px; padding: 6px; border-radius: 16px; background: var(--color-surface); box-shadow: var(--shadow-lg); z-index: 300; }
+.avatar-menu .avatar-menu-perigo, .avatar-menu .avatar-menu-perigo i { color: var(--color-negative); }
+.avatar-dica { min-height: 20px; margin: 0; font-size: 13px; color: var(--color-neutral-500); text-align: center; }
+.avatar-dica .perfil-msg-ok, .avatar-dica .perfil-msg-erro { margin: 0; }
 .perfil-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 14px; }
 .perfil-aviso { margin: 0; font-size: 13px; color: var(--color-neutral-400); }
 .perfil-acoes { display: flex; align-items: center; justify-content: flex-end; gap: 12px; flex-wrap: wrap; }

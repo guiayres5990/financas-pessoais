@@ -119,8 +119,12 @@ export const T = {
     contaTitulo: "Conta",
     emailCadastrado: "E-mail cadastrado",
     nomeExibicao: "Nome de exibição",
-    trocarFoto: "Trocar foto",
-    removerFoto: "Remover foto",
+    avatarMudar: "Mudar avatar",
+    avatarRemover: "Remover avatar",
+    avatarOpcoes: "Opções do avatar",
+    avatarEscolher: "Escolher foto do avatar",
+    fotoSalva: "Avatar atualizado.",
+    fotoRemovida: "Avatar removido.",
     fotoErroTipo: "Use uma imagem JPG, PNG ou WebP.",
     fotoErroTamanho: "A imagem pode ter no máximo 5 MB.",
     fotoErroProcessar: "Não foi possível usar esta imagem. Tente outra.",
@@ -172,8 +176,8 @@ export const T = {
     privPrecisaAceitar: "Para criar a conta, marque que você leu e concorda com a Política de Privacidade.",
     privSecoes: [
       { titulo: "1. Quem é o responsável", itens: [
-        "O FALC é um projeto de {nome}, responsável (controlador) pelos seus dados no app.",
-        "Contato para qualquer assunto de privacidade: {email}.",
+        "O FALC é um projeto independente de controle de finanças pessoais e é o responsável (controlador) pelos seus dados no app.",
+        "Para qualquer assunto de privacidade, entre em contato pelo e-mail {email}.",
       ] },
       { titulo: "2. Quais dados coletamos", itens: [
         "Dados da conta: seu e-mail e, se você entrar com o Google, o nome da sua conta Google.",
@@ -205,10 +209,10 @@ export const T = {
       ] },
       { titulo: "7. Seus direitos pela LGPD", itens: [
         "Acessar: tudo o que você lançou aparece no histórico do app.",
-        "Corrigir: apague o lançamento errado e lance de novo, ou peça pelo e-mail de contato.",
+        "Corrigir: apague o lançamento errado e lance de novo, ou entre em contato pelo e-mail de privacidade.",
         "Exportar: baixe seus lançamentos em CSV pelo botão “Exportar CSV”.",
         "Excluir: apague a conta e todos os dados pelo próprio app (veja a seção 8).",
-        "Você também pode pedir informações sobre o uso dos seus dados e fazer reclamação à ANPD (Autoridade Nacional de Proteção de Dados).",
+        "Para pedir informações sobre o uso dos seus dados ou exercer qualquer outro direito, entre em contato pelo e-mail de privacidade. Você também pode fazer reclamação à ANPD (Autoridade Nacional de Proteção de Dados).",
       ] },
       { titulo: "8. Como excluir sua conta", itens: [
         "No app, abra o Perfil e, no fim da página, clique no botão “Excluir minha conta”; digite EXCLUIR para confirmar.",
@@ -216,7 +220,7 @@ export const T = {
         "Se quiser guardar uma cópia, exporte o CSV antes.",
       ] },
       { titulo: "9. Prazo para responder", itens: [
-        "Pedidos feitos pelo e-mail de contato são respondidos em até 15 dias.",
+        "Para pedidos e dúvidas, entre em contato pelo e-mail de privacidade. Respondemos em até 15 dias.",
       ] },
       { titulo: "10. Mudanças nesta política", itens: [
         "Se algo importante mudar, atualizamos esta página e a data no topo.",
@@ -346,8 +350,12 @@ export const T = {
     contaTitulo: "Account",
     emailCadastrado: "Registered e-mail",
     nomeExibicao: "Display name",
-    trocarFoto: "Change photo",
-    removerFoto: "Remove photo",
+    avatarMudar: "Change avatar",
+    avatarRemover: "Remove avatar",
+    avatarOpcoes: "Avatar options",
+    avatarEscolher: "Choose avatar photo",
+    fotoSalva: "Avatar updated.",
+    fotoRemovida: "Avatar removed.",
     fotoErroTipo: "Use a JPG, PNG or WebP image.",
     fotoErroTamanho: "The image can be at most 5 MB.",
     fotoErroProcessar: "Couldn't use this image. Try another one.",
@@ -396,8 +404,8 @@ export const T = {
     privPrecisaAceitar: "To create your account, confirm that you have read and agree to the Privacy Policy.",
     privSecoes: [
       { titulo: "1. Who is responsible", itens: [
-        "FALC is a project by {nome}, who is responsible (data controller) for your data in the app.",
-        "Contact for any privacy matter: {email}.",
+        "FALC is an independent personal finance project and is responsible (data controller) for your data in the app.",
+        "For any privacy matter, contact us by e-mail at {email}.",
       ] },
       { titulo: "2. What data we collect", itens: [
         "Account data: your e-mail and, if you sign in with Google, your Google account name.",
@@ -429,10 +437,10 @@ export const T = {
       ] },
       { titulo: "7. Your rights under the LGPD", itens: [
         "Access: everything you logged appears in the app's history.",
-        "Correct: delete the wrong entry and add it again, or ask through the contact e-mail.",
+        "Correct: delete the wrong entry and add it again, or contact us through the privacy e-mail.",
         "Export: download your entries as CSV with the “Export CSV” button.",
         "Delete: delete your account and all your data from inside the app (see section 8).",
-        "You can also ask how your data is used and file a complaint with the ANPD (Brazil's National Data Protection Authority).",
+        "To ask how your data is used or to exercise any other right, contact us through the privacy e-mail. You can also file a complaint with the ANPD (Brazil's National Data Protection Authority).",
       ] },
       { titulo: "8. How to delete your account", itens: [
         "In the app, open your Profile and, at the bottom of the page, click the “Delete my account” button; type DELETE to confirm.",
@@ -440,7 +448,7 @@ export const T = {
         "If you want to keep a copy, export the CSV first.",
       ] },
       { titulo: "9. Response time", itens: [
-        "Requests sent to the contact e-mail are answered within 15 days.",
+        "For requests and questions, contact us through the privacy e-mail. We reply within 15 days.",
       ] },
       { titulo: "10. Changes to this policy", itens: [
         "If anything important changes, we will update this page and the date at the top.",
@@ -570,8 +578,12 @@ export const T = {
     contaTitulo: "Cuenta",
     emailCadastrado: "Correo registrado",
     nomeExibicao: "Nombre visible",
-    trocarFoto: "Cambiar foto",
-    removerFoto: "Quitar foto",
+    avatarMudar: "Cambiar avatar",
+    avatarRemover: "Quitar avatar",
+    avatarOpcoes: "Opciones del avatar",
+    avatarEscolher: "Elegir foto del avatar",
+    fotoSalva: "Avatar actualizado.",
+    fotoRemovida: "Avatar eliminado.",
     fotoErroTipo: "Usa una imagen JPG, PNG o WebP.",
     fotoErroTamanho: "La imagen puede tener como máximo 5 MB.",
     fotoErroProcessar: "No se pudo usar esta imagen. Prueba con otra.",
@@ -620,8 +632,8 @@ export const T = {
     privPrecisaAceitar: "Para crear la cuenta, marca que has leído y aceptas la Política de Privacidad.",
     privSecoes: [
       { titulo: "1. Quién es el responsable", itens: [
-        "FALC es un proyecto de {nome}, responsable (controlador) de tus datos en la app.",
-        "Contacto para cualquier asunto de privacidad: {email}.",
+        "FALC es un proyecto independiente de control de finanzas personales y es el responsable (controlador) de tus datos en la app.",
+        "Para cualquier asunto de privacidad, contáctanos por el correo {email}.",
       ] },
       { titulo: "2. Qué datos recopilamos", itens: [
         "Datos de la cuenta: tu correo y, si entras con Google, el nombre de tu cuenta de Google.",
@@ -653,10 +665,10 @@ export const T = {
       ] },
       { titulo: "7. Tus derechos según la LGPD", itens: [
         "Acceder: todo lo que registraste aparece en el historial de la app.",
-        "Corregir: elimina el registro equivocado y vuelve a crearlo, o pídelo por el correo de contacto.",
+        "Corregir: elimina el registro equivocado y vuelve a crearlo, o contáctanos por el correo de privacidad.",
         "Exportar: descarga tus registros en CSV con el botón “Exportar CSV”.",
         "Eliminar: borra la cuenta y todos los datos desde la propia app (ver sección 8).",
-        "También puedes pedir información sobre el uso de tus datos y presentar una reclamación ante la ANPD (Autoridad Nacional de Protección de Datos de Brasil).",
+        "Para pedir información sobre el uso de tus datos o ejercer cualquier otro derecho, contáctanos por el correo de privacidad. También puedes presentar una reclamación ante la ANPD (Autoridad Nacional de Protección de Datos de Brasil).",
       ] },
       { titulo: "8. Cómo eliminar tu cuenta", itens: [
         "En la app, abre tu Perfil y, al final de la página, haz clic en el botón “Eliminar mi cuenta”; escribe ELIMINAR para confirmar.",
@@ -664,7 +676,7 @@ export const T = {
         "Si quieres guardar una copia, exporta el CSV antes.",
       ] },
       { titulo: "9. Plazo de respuesta", itens: [
-        "Las solicitudes enviadas al correo de contacto se responden en un plazo de hasta 15 días.",
+        "Para solicitudes y dudas, contáctanos por el correo de privacidad. Respondemos en un plazo de hasta 15 días.",
       ] },
       { titulo: "10. Cambios en esta política", itens: [
         "Si cambia algo importante, actualizaremos esta página y la fecha de arriba.",

@@ -1,15 +1,13 @@
 import Logo from "./Logo";
 
-// Dados do responsável pela política (LGPD).
+// Contato de privacidade (LGPD). O responsável (controlador) é o próprio projeto FALC.
 // Se EMAIL_CONTATO ficar vazio, a página mostra "e-mail de contato em breve".
-const RESPONSAVEL = "Guilherme Falcão Eubank Ayres";
 const EMAIL_CONTATO = "falc.empresa@gmail.com";
 
-// Troca {nome} e {email} pelo valor real; o e-mail vira um link clicável.
+// Troca {email} pelo endereço real, como link clicável.
 function Item({ texto, t }) {
-  const comNome = texto.replace("{nome}", RESPONSAVEL);
-  if (!comNome.includes("{email}")) return <li>{comNome}</li>;
-  const [antes, depois] = comNome.split("{email}");
+  if (!texto.includes("{email}")) return <li>{texto}</li>;
+  const [antes, depois] = texto.split("{email}");
   return (
     <li>
       {antes}

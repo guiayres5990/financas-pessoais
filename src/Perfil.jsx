@@ -20,7 +20,43 @@ export default function Perfil({ email, perfil, apelidoPadrao, t, onSalvar, onEx
   const [salvandoConta, setSalvandoConta] = useState(false);
   const [msgFoto, setMsgFoto] = useState(null);
   const [processandoFoto, setProcessandoFoto] = useState(false);
+  const [menuAvatar, setMenuAvatar] = useState(false);
   const arquivoRef = useRef(null);
+  const avatarRef = useRef(null);
+  const avatarBotaoRef = useRef(null);
+
+  // Mini menu do avatar fecha com Esc ou clique fora
+  useEffect(() => {
+    if (!menuAvatar) return;
+    const fora = e => { if (avatarRef.current && !avatarRef.current.contains(e.target)) setMenuAvatar(false); };
+    const tecla = e => { if (e.key === "Escape") { setMenuAvatar(false); avatarBotaoRef.current?.focus(); } };
+    document.addEventListener("mousedown", fora);
+    document.addEventListener("touchstart", fora);
+    document.addEventListener("keydown", tecla);
+    return () => {
+      document.removeEventListener("mousedown", fora);
+      document.removeEventListener("touchstart", fora);
+      document.removeEventListener("keydown", tecla);
+    };
+  }, [menuAvatar]);
+
+  // O aviso de sucesso some sozinho depois de alguns segundos
+  useEffect(() => {
+    if (!msgFoto || !msgFoto.ok) return;
+    const id = setTimeout(() => setMsgFoto(null), 3000);
+    return () => clearTimeout(id);
+  }, [msgFoto]);
+
+  function cliqueAvatar() {
+    if (processandoFoto) return;
+    setMsgFoto(null);
+    if (base.foto) setMenuAvatar(m => !m);       // com foto: abre o mini menu
+    else arquivoRef.current && arquivoRef.current.click(); // sem foto: seletor direto
+  }
+  function mudarAvatar() {
+    setMenuAvatar(false);
+    arquivoRef.current && arquivoRef.current.click();
+  }
 
   // ── card Dados opcionais ──
   const [cpfEditando, setCpfEditando] = useState(!salvo.cpf);
@@ -57,7 +93,7 @@ export default function Perfil({ email, perfil, apelidoPadrao, t, onSalvar, onEx
     try {
       const foto = await processarFoto(arquivo);
       await onSalvar({ ...base, foto });
-      setMsgFoto({ ok: true, texto: t.salvo });
+      setMsgFoto({ ok: true, texto: t.fotoSalva });
     } catch (err) {
       const chave = { tipo: "fotoErroTipo", tamanho: "fotoErroTamanho", imagem: "fotoErroProcessar", grande: "fotoErroProcessar" }[err.message];
       setMsgFoto({ ok: false, texto: chave ? t[chave] : t.erroSalvar });
@@ -65,11 +101,14 @@ export default function Perfil({ email, perfil, apelidoPadrao, t, onSalvar, onEx
     setProcessandoFoto(false);
   }
 
+  // Remove o campo foto (setDoc sem merge, sem "foto", mantendo os outros campos)
   async function removerFoto() {
+    setMenuAvatar(false);
     setProcessandoFoto(true); setMsgFoto(null);
-    try { await onSalvar({ ...base, foto: undefined }); }
+    try { await onSalvar({ ...base, foto: undefined }); setMsgFoto({ ok: true, texto: t.fotoRemovida }); }
     catch { setMsgFoto({ ok: false, texto: t.erroSalvar }); }
     setProcessandoFoto(false);
+    avatarBotaoRef.current?.focus();
   }
 
   async function salvarOpcionais() {
@@ -120,15 +159,34 @@ export default function Perfil({ email, perfil, apelidoPadrao, t, onSalvar, onEx
             <Msg m={msgConta} />
           </div>
           <div className="perfil-avatar">
-            <Avatar nome={base.apelido} foto={base.foto} tamanho="xl" />
+            <div className="avatar-ancora" ref={avatarRef}>
+              <button ref={avatarBotaoRef} type="button" className="avatar-botao"
+                aria-label={base.foto ? t.avatarOpcoes : t.avatarEscolher}
+                aria-haspopup={base.foto ? "menu" : undefined}
+                aria-expanded={base.foto ? menuAvatar : undefined}
+                aria-busy={processandoFoto}
+                data-carregando={processandoFoto}
+                onClick={cliqueAvatar}>
+                <Avatar nome={base.apelido} foto={base.foto} tamanho="xl" />
+                <span className="avatar-sobre" aria-hidden="true">
+                  <i className={"ph " + (processandoFoto ? "ph-spinner-gap avatar-girando" : base.foto ? "ph-pencil-simple" : "ph-camera")} />
+                </span>
+              </button>
+              {menuAvatar && base.foto && (
+                <div className="avatar-menu" role="menu">
+                  <button type="button" role="menuitem" className="conta-item" onClick={mudarAvatar}>
+                    <i className="ph ph-image" /> <span>{t.avatarMudar}</span>
+                  </button>
+                  <button type="button" role="menuitem" className="conta-item avatar-menu-perigo" onClick={removerFoto}>
+                    <i className="ph ph-trash" /> <span>{t.avatarRemover}</span>
+                  </button>
+                </div>
+              )}
+            </div>
             <input ref={arquivoRef} type="file" accept="image/jpeg,image/png,image/webp" hidden onChange={trocarFoto} />
-            <button className="btn btn-secondary" disabled={processandoFoto} onClick={() => arquivoRef.current && arquivoRef.current.click()}>
-              <i className="ph ph-camera" /> {processandoFoto ? t.salvando : t.trocarFoto}
-            </button>
-            <button className="btn btn-ghost" disabled={processandoFoto || !base.foto} onClick={removerFoto}>
-              {t.removerFoto}
-            </button>
-            <Msg m={msgFoto} />
+            <p className="avatar-dica" role="status" aria-live="polite">
+              {processandoFoto ? t.salvando : msgFoto ? <span className={msgFoto.ok ? "perfil-msg-ok" : "perfil-msg-erro"}>{msgFoto.texto}</span> : null}
+            </p>
           </div>
         </div>
       </section>
