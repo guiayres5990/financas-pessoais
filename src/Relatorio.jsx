@@ -1,6 +1,7 @@
 import { useState } from "react";
 import jsPDF from "jspdf";
 import { CATS_BASE, fmt } from "./App";
+import { calcularSimulacao } from "./simulacao";
 
 const CICLOS = [1, 5, 10, 15, 20, 25];
 const br = iso => iso.split("-").reverse().join("/");
@@ -35,12 +36,15 @@ function loadImageAsBase64(src) {
   });
 }
 
-export default function Relatorio({ txs, userEmail, privado, t = {} }) {
+export default function Relatorio({ txs, sim, userEmail, privado, t = {} }) {
   const hoje = new Date();
   const [dataInicio, setDataInicio] = useState(() => new Date(hoje.getFullYear(), hoje.getMonth(), 1).toISOString().slice(0, 10));
   const [dataFim, setDataFim] = useState(() => hoje.toISOString().slice(0, 10));
   const [cicloAtivo, setCicloAtivo] = useState(null);
   const [gerando, setGerando] = useState(false);
+  const [incluirSim, setIncluirSim] = useState(true);
+  const simR = sim ? calcularSimulacao(sim, txs) : null;
+  const temSim = !!(simR && simR.valido);
 
   const m = v => (privado ? "R$ ••••" : fmt(v));
 
@@ -197,6 +201,68 @@ export default function Relatorio({ txs, userEmail, privado, t = {} }) {
       y += 4;
     }
 
+    // Simulação de financiamento dos estudos
+    if (temSim && incluirSim) {
+      const nomes = { trabalhar: t.simTrabalhar, bolsa: t.simBolsaNome, credito: t.simCredito };
+      const statusTxt = { folga: t.simFolga, apertado: t.simApertado, estoura: t.simEstoura };
+      checkPage(70);
+      pdf.setTextColor(41, 43, 49);
+      pdf.setFontSize(10);
+      pdf.setFont("helvetica", "bold");
+      pdf.text(t.simTituloPDF || "Simulação", M, y);
+      y += 5;
+      pdf.setTextColor(117, 121, 140);
+      pdf.setFontSize(7);
+      pdf.setFont("helvetica", "normal");
+      pdf.text((t.simBaseUsada || "Base") + ": " + (t.simMensalidade || "") + " " + m(simR.mensalidade) +
+        " · " + (t.receita2 || "") + " " + m(simR.renda) + " · " + (t.despesas || "") + " " + m(simR.gastos), M, y);
+      y += 4;
+
+      pdf.setFillColor(240, 241, 248);
+      pdf.rect(M, y, W - M * 2, 6, "F");
+      pdf.setFont("helvetica", "bold");
+      pdf.text((t.simCenario || "Cenário").toUpperCase(), M + 2, y + 4);
+      pdf.text((t.simEntra || "Entra").toUpperCase(), M + 62, y + 4);
+      pdf.text((t.simSai || "Sai").toUpperCase(), M + 97, y + 4);
+      pdf.text((t.saldo || "Saldo").toUpperCase(), M + 132, y + 4);
+      y += 9;
+
+      simR.cenarios.forEach(c => {
+        const melhor = c.id === simR.melhor.id && c.sobra >= 0;
+        pdf.setTextColor(41, 43, 49);
+        pdf.setFontSize(8);
+        pdf.setFont("helvetica", melhor ? "bold" : "normal");
+        pdf.text((melhor ? "* " : "") + nomes[c.id], M + 2, y);
+        pdf.setFont("helvetica", "normal");
+        pdf.text(m(c.entra), M + 62, y);
+        pdf.text(m(c.sai), M + 97, y);
+        if (c.sobra >= 0) pdf.setTextColor(100, 160, 100); else pdf.setTextColor(200, 60, 60);
+        pdf.setFont("helvetica", "bold");
+        pdf.text((c.sobra < 0 ? "-" : "") + m(Math.abs(c.sobra)), M + 132, y);
+        pdf.setFont("helvetica", "normal");
+        pdf.setTextColor(117, 121, 140);
+        const st = statusTxt[c.status] || "";
+        pdf.text(st, W - M - 2 - pdf.getTextWidth(st), y);
+        y += 7;
+      });
+
+      pdf.setTextColor(41, 43, 49);
+      pdf.setFontSize(8);
+      const credito = simR.cenarios.find(c => c.id === "credito");
+      pdf.text((t.simDivida || "Dívida") + ": " + m(credito.divida), M, y);
+      y += 5;
+      const conclusao = simR.cenarios.some(c => c.sobra >= 0)
+        ? (t.simMelhor || "") + " " + nomes[simR.melhor.id] + " (" + m(simR.melhor.sobra) + ")."
+        : (t.simNenhumCabe || "");
+      pdf.setFont("helvetica", "bold");
+      pdf.splitTextToSize(conclusao, W - M * 2).forEach(l => { pdf.text(l, M, y); y += 4; });
+      pdf.setFont("helvetica", "normal");
+      pdf.setTextColor(117, 121, 140);
+      pdf.setFontSize(7);
+      pdf.splitTextToSize(t.simLembrete || "", W - M * 2).forEach(l => { pdf.text(l, M, y); y += 3.5; });
+      y += 6;
+    }
+
     // Lançamentos
     checkPage(12);
     pdf.setTextColor(41, 43, 49);
@@ -229,7 +295,7 @@ export default function Relatorio({ txs, userEmail, privado, t = {} }) {
       pdf.text(desc, M + 2, y + 1);
       pdf.text(catLabel(tx.cat), M + 70, y + 1);
       pdf.text(new Date(tx.data + "T12:00:00").toLocaleDateString("pt-BR"), M + 110, y + 1);
-      const val = (tx.tipo === "receita" ? "+" : "−") + m(tx.valor);
+      const val = (tx.tipo === "receita" ? "+" : "-") + m(tx.valor);
       if (tx.tipo === "receita") {
         pdf.setTextColor(100, 160, 100);
       } else {
@@ -283,6 +349,12 @@ export default function Relatorio({ txs, userEmail, privado, t = {} }) {
             {gerando ? (t.gerando || "Gerando…") : (t.gerarPDF || "Gerar PDF")}
           </button>
         </div>
+        {temSim && (
+          <label style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 13, color: "var(--color-neutral-400)", cursor: "pointer" }}>
+            <input type="checkbox" checked={incluirSim} onChange={e => setIncluirSim(e.target.checked)} />
+            <i className="ph ph-scales" style={{ fontSize: 15 }} /> {t.simIncluirPDF}
+          </label>
+        )}
       </div>
 
       {txPeriodo.length === 0 ? (
