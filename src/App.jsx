@@ -1,15 +1,17 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { auth, db } from "./firebase";
 import {
   createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut,
   onAuthStateChanged, sendPasswordResetEmail, GoogleAuthProvider,
   signInWithRedirect, getRedirectResult, deleteUser
 } from "firebase/auth";
-import { collection, addDoc, deleteDoc, doc, onSnapshot, query, where, orderBy, getDocs, writeBatch } from "firebase/firestore";
+import { collection, addDoc, deleteDoc, doc, onSnapshot, query, where, orderBy, getDocs, getDoc, writeBatch, setDoc, serverTimestamp } from "firebase/firestore";
 import Relatorio from "./Relatorio";
 import Landing from "./Landing";
 import Privacidade from "./Privacidade";
-import BrandMark from "./BrandMark";
+import Logo from "./Logo";
+import MenuConta from "./MenuConta";
+import { ATALHOS, MAX_SUB } from "./subcategorias";
 import { T, LANGS } from "./i18n";
 
 export const CATS_BASE = [
@@ -90,7 +92,13 @@ export default function App() {
   const [busca, setBusca] = useState("");
   const [privado, setPrivado] = useState(false);
   const [confirmDel, setConfirmDel] = useState(null);
-  const [form, setForm] = useState({ tipo: "despesa", valor: "", desc: "", cat: "alimentacao", data: hoje() });
+  const [form, setForm] = useState({ tipo: "despesa", valor: "", desc: "", cat: "alimentacao", sub: "", data: hoje() });
+  // subcategorias criadas pelo usuário (coleção "subcategorias")
+  const [subsUser, setSubsUser] = useState([]);
+  const [dialogSub, setDialogSub] = useState(false);
+  const [subTxt, setSubTxt] = useState("");
+  const [subErr, setSubErr] = useState("");
+  const [salvandoSub, setSalvandoSub] = useState(false);
   const [saving, setSaving] = useState(false);
   const [rota, setRota] = useState(() => window.location.hash);
   const [aceitePriv, setAceitePriv] = useState(false);
@@ -98,6 +106,13 @@ export default function App() {
   const [delTxt, setDelTxt] = useState("");
   const [delErr, setDelErr] = useState("");
   const [excluindo, setExcluindo] = useState(false);
+  const excluindoRef = useRef(false);
+  // apelido (perfis/{uid}): null = ainda carregando
+  const [apelido, setApelido] = useState(null);
+  const [dialogApelido, setDialogApelido] = useState(null); // null | "novo" | "editar"
+  const [apelidoTxt, setApelidoTxt] = useState("");
+  const [apelidoErr, setApelidoErr] = useState("");
+  const [salvandoApelido, setSalvandoApelido] = useState(false);
 
   // traduções e categorias derivadas do idioma
   const tr = T[lang] || T["pt"];
@@ -144,6 +159,28 @@ export default function App() {
     return onSnapshot(q, snap => setTxs(snap.docs.map(d => ({ id: d.id, ...d.data() }))));
   }, [user]);
 
+  // Atalhos criados pelo usuário: só where(uid), sem orderBy (ordena aqui no cliente)
+  useEffect(() => {
+    if (!user) { setSubsUser([]); return; }
+    const q = query(collection(db, "subcategorias"), where("uid", "==", user.uid));
+    return onSnapshot(q,
+      snap => setSubsUser(snap.docs.map(d => ({ id: d.id, ...d.data() }))
+        .sort((a, b) => String(a.nome).localeCompare(String(b.nome), "pt-BR"))),
+      () => setSubsUser([]));
+  }, [user]);
+
+  // Apelido salvo em perfis/{uid}. Se ainda não existir, pede no primeiro acesso.
+  useEffect(() => {
+    if (!user) { setApelido(null); setDialogApelido(null); return; }
+    return onSnapshot(doc(db, "perfis", user.uid), snap => {
+      if (excluindoRef.current) return;
+      const salvo = snap.exists() ? String(snap.data().apelido || "").trim() : "";
+      if (salvo) { setApelido(salvo); return; }
+      setApelido(primeiroNome(user));
+      setApelidoTxt(primeiroNome(user)); setApelidoErr(""); setDialogApelido("novo");
+    }, () => setApelido(primeiroNome(user)));
+  }, [user]);
+
   const money = v => (privado ? "R$ ••••" : fmt(v));
 
   const txMes = txs.filter(tx => {
@@ -159,7 +196,13 @@ export default function App() {
   const diaAtual = (mes === agora.getMonth() && ano === agora.getFullYear()) ? agora.getDate() : diasMes;
   const projecao = diaAtual > 0 ? (despesas / diaAtual) * diasMes : 0;
   const projPct = receitas > 0 ? Math.min(100, Math.round((projecao / receitas) * 100)) : 0;
-  const txFiltradas = txMes.filter(tx => busca === "" || tx.desc.toLowerCase().includes(busca.toLowerCase()) || getCat(tx.cat).label.toLowerCase().includes(busca.toLowerCase()));
+  const txFiltradas = txMes.filter(tx => busca === "" || tx.desc.toLowerCase().includes(busca.toLowerCase()) || getCat(tx.cat).label.toLowerCase().includes(busca.toLowerCase()) || (tx.sub || "").toLowerCase().includes(busca.toLowerCase()));
+
+  // Atalhos da categoria escolhida: prontos (código) + criados pelo usuário (banco)
+  const atalhosCat = [
+    ...(ATALHOS[form.cat] || []).map(id => ({ nome: (tr.atalhos && tr.atalhos[id]) || id, pronto: true })),
+    ...subsUser.filter(s => s.cat === form.cat).map(s => ({ nome: s.nome, id: s.id, pronto: false })),
+  ];
 
   const donut = (() => {
     if (!porCat.length) return "conic-gradient(var(--color-neutral-900) 0 100%)";
@@ -214,18 +257,91 @@ export default function App() {
 
   async function addTx() {
     const v = parseFloat(String(form.valor).replace(",", "."));
-    if (!v || v <= 0 || !form.desc.trim()) return;
+    const sub = form.sub.trim().slice(0, MAX_SUB);
+    const desc = form.desc.trim() || sub; // sem descrição, usa o nome do atalho
+    if (!v || v <= 0 || !desc) return;
     setSaving(true);
-    await addDoc(collection(db, "transacoes"), { ...form, valor: v, uid: user.uid, criadoEm: new Date() });
-    setForm(f => ({ ...f, valor: "", desc: "" }));
+    const novo = { tipo: form.tipo, valor: v, desc, cat: form.cat, data: form.data, uid: user.uid, criadoEm: new Date() };
+    if (sub) novo.sub = sub; // campo opcional
+    await addDoc(collection(db, "transacoes"), novo);
+    setForm(f => ({ ...f, valor: "", desc: "", sub: "" }));
     setSaving(false);
     setView("historico");
   }
 
+  // Tocar num atalho: guarda em "sub" e preenche a descrição (se ela estiver vazia
+  // ou ainda for o atalho anterior). Tocar de novo desmarca.
+  function escolherAtalho(nome) {
+    setForm(f => {
+      if (f.sub === nome) return { ...f, sub: "", desc: f.desc === nome ? "" : f.desc };
+      const trocaDesc = !f.desc.trim() || f.desc === f.sub;
+      return { ...f, sub: nome, desc: trocaDesc ? nome : f.desc };
+    });
+  }
+
+  function mudarCategoria(cat) {
+    setForm(f => ({ ...f, cat, sub: "", desc: f.sub && f.desc === f.sub ? "" : f.desc }));
+  }
+
+  async function salvarAtalho() {
+    const nome = subTxt.trim();
+    if (nome.length < 1 || nome.length > MAX_SUB) { setSubErr(tr.novoAtalhoErro); return; }
+    const existente = atalhosCat.find(a => a.nome.toLowerCase() === nome.toLowerCase());
+    if (existente) { if (form.sub !== existente.nome) escolherAtalho(existente.nome); setDialogSub(false); return; }
+    setSalvandoSub(true); setSubErr("");
+    try {
+      await addDoc(collection(db, "subcategorias"), { uid: user.uid, cat: form.cat, nome, criadoEm: serverTimestamp() });
+      escolherAtalho(nome);
+      setDialogSub(false);
+    } catch {
+      setSubErr(tr.erroSalvar);
+    }
+    setSalvandoSub(false);
+  }
+
+  async function excluirAtalho(a) {
+    if (!window.confirm(tr.excluirAtalhoConfirma)) return;
+    try {
+      await deleteDoc(doc(db, "subcategorias", a.id));
+      if (form.sub === a.nome) escolherAtalho(a.nome);
+    } catch {
+      window.alert(tr.erroSalvar);
+    }
+  }
+
   async function delTx(id) { await deleteDoc(doc(db, "transacoes", id)); setConfirmDel(null); }
 
-  // Exclusão de conta (LGPD): primeiro apaga os lançamentos, depois a conta.
-  // Se apagar os lançamentos falhar, a conta NÃO é apagada.
+  // Primeiro nome: do nome da conta (Google) ou do e-mail antes do @, com inicial maiúscula
+  function primeiroNome(u) {
+    if (!u) return "";
+    let base = (u.displayName || "").trim().split(/\s+/)[0];
+    if (!base) {
+      const local = (u.email || "").split("@")[0];
+      base = local.split(/[^\p{L}]+/u).find(Boolean) || local; // "guilherme.falcao99" → "guilherme"
+    }
+    return (base.charAt(0).toUpperCase() + base.slice(1)).slice(0, 30);
+  }
+
+  function abrirPerfil() {
+    setApelidoTxt(apelido || ""); setApelidoErr(""); setDialogApelido("editar");
+  }
+
+  async function salvarApelido() {
+    const nome = apelidoTxt.trim();
+    if (nome.length < 1 || nome.length > 30) { setApelidoErr(tr.apelidoErro); return; }
+    setSalvandoApelido(true); setApelidoErr("");
+    try {
+      await setDoc(doc(db, "perfis", user.uid), { apelido: nome, atualizadoEm: serverTimestamp() });
+      setApelido(nome);
+      setDialogApelido(null);
+    } catch {
+      setApelidoErr(tr.erroSalvar);
+    }
+    setSalvandoApelido(false);
+  }
+
+  // Exclusão de conta (LGPD): primeiro apaga os dados (lançamentos, subcategorias
+  // e perfil), depois a conta. Se apagar os dados falhar, a conta NÃO é apagada.
   async function excluirMinhaConta() {
     const u = auth.currentUser;
     if (!u || excluindo) return;
@@ -239,16 +355,24 @@ export default function App() {
     }
 
     setExcluindo(true);
+    excluindoRef.current = true;
     try {
-      const snap = await getDocs(query(collection(db, "transacoes"), where("uid", "==", u.uid)));
-      for (let i = 0; i < snap.docs.length; i += 400) {
+      const [lanc, subs, perfil] = await Promise.all([
+        getDocs(query(collection(db, "transacoes"), where("uid", "==", u.uid))),
+        getDocs(query(collection(db, "subcategorias"), where("uid", "==", u.uid))),
+        getDoc(doc(db, "perfis", u.uid)),
+      ]);
+      const refs = [...lanc.docs.map(d => d.ref), ...subs.docs.map(d => d.ref)];
+      if (perfil.exists()) refs.push(perfil.ref);
+      for (let i = 0; i < refs.length; i += 400) {
         const lote = writeBatch(db);
-        snap.docs.slice(i, i + 400).forEach(d => lote.delete(d.ref));
+        refs.slice(i, i + 400).forEach(ref => lote.delete(ref));
         await lote.commit();
       }
     } catch {
       setDelErr(tr.excluirContaErroDados);
       setExcluindo(false);
+      excluindoRef.current = false;
       return;
     }
 
@@ -257,9 +381,11 @@ export default function App() {
     } catch {
       setDelErr(tr.excluirContaErroConta);
       setExcluindo(false);
+      excluindoRef.current = false;
       return;
     }
 
+    excluindoRef.current = false;
     Object.keys(localStorage).filter(k => k.startsWith("fp_")).forEach(k => localStorage.removeItem(k));
     setExcluindo(false);
     setDelConta(false);
@@ -270,8 +396,10 @@ export default function App() {
   }
 
   function exportCSV() {
-    const h = "Data,Tipo,Categoria,Descrição,Valor\n";
-    const r = txs.map(tx => `${tx.data},${tx.tipo},${getCat(tx.cat).label},${tx.desc},${tx.valor}`).join("\n");
+    // aspas em volta de cada campo para vírgulas na descrição não quebrarem as colunas
+    const q = v => '"' + String(v ?? "").replace(/"/g, '""') + '"';
+    const h = ["Data", "Tipo", "Categoria", "Subcategoria", "Descrição", "Valor"].map(q).join(",") + "\n";
+    const r = txs.map(tx => [tx.data, tx.tipo, getCat(tx.cat).label, tx.sub || "", tx.desc, tx.valor].map(q).join(",")).join("\n");
     const a = document.createElement("a");
     a.href = URL.createObjectURL(new Blob([h + r], { type: "text/csv" }));
     a.download = "capital-hub.csv";
@@ -306,7 +434,7 @@ export default function App() {
     return (
       <div className="auth">
         <aside className="auth-aside">
-          <span className="brand"><BrandMark />FALC</span>
+          <span className="brand"><Logo variant="horizontal" className="logo-login" /></span>
           <div>
             <h2 style={{ maxWidth: "18ch", marginBottom: 14 }}>{tr.tagline}</h2>
           </div>
@@ -399,12 +527,11 @@ export default function App() {
   }
 
   const vAtual = VIEWS.find(v => v[0] === view) || VIEWS[0];
-  const inicial = (user.email || user.displayName || "?").slice(0, 2).toUpperCase();
 
   return (
     <div className="shell">
       <aside className="sidebar">
-        <span className="brand brand-sm"><BrandMark /><span>FALC</span></span>
+        <span className="brand"><Logo variant="horizontal" className="logo-sidebar logo-sidebar-h" /><Logo variant="simbolo" className="logo-sidebar logo-sidebar-s" /></span>
         <nav className="side-nav">
           {VIEWS.map(([id, label, icon]) => (
             <button key={id} onClick={() => setView(id)} aria-current={view === id ? "page" : undefined}>
@@ -413,24 +540,16 @@ export default function App() {
           ))}
         </nav>
         <div className="side-foot">
-          <button className="btn btn-secondary" style={{ justifyContent: "flex-start", gap: 8 }} onClick={exportCSV}>
-            <i className="ph ph-download-simple" style={{ fontSize: 16 }} /> {tr.exportarCSV}
-          </button>
-          <div className="user-chip">
-            <span className="avatar">{inicial}</span>
-            <div style={{ minWidth: 0, flex: 1 }}>
-              <p style={{ margin: 0, fontSize: 12, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{user.email || user.displayName}</p>
-              <p style={{ margin: 0, fontSize: 10, color: "var(--color-neutral-600)" }}>{tr.planoGratuito}</p>
-            </div>
-            <button className="btn btn-icon btn-ghost" title={tr.sair} onClick={() => signOut(auth)}>
-              <i className="ph ph-sign-out" style={{ fontSize: 15 }} />
-            </button>
-          </div>
-          <button className="btn btn-danger" style={{ justifyContent: "flex-start", gap: 8, fontSize: 12 }}
-            onClick={() => { setDelConta(true); setDelTxt(""); setDelErr(""); }}>
-            <i className="ph ph-trash" style={{ fontSize: 15 }} /> {tr.excluirConta}
-          </button>
-          <a href="#/privacidade" style={{ fontSize: 11, color: "var(--color-neutral-500)", textAlign: "center" }}>{tr.privLink}</a>
+          <MenuConta
+            apelido={apelido || primeiroNome(user)}
+            email={user.email || user.displayName || ""}
+            t={tr}
+            onPerfil={abrirPerfil}
+            onExportar={exportCSV}
+            onPrivacidade={() => { window.location.hash = "#/privacidade"; }}
+            onExcluir={() => { setDelConta(true); setDelTxt(""); setDelErr(""); }}
+            onSair={() => signOut(auth)}
+          />
         </div>
       </aside>
 
@@ -578,13 +697,33 @@ export default function App() {
                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
                   <div className="field">
                     <label>{tr.categoria}</label>
-                    <select className="input" value={form.cat} onChange={e => setForm(f => ({ ...f, cat: e.target.value }))}>
+                    <select className="input" value={form.cat} onChange={e => mudarCategoria(e.target.value)}>
                       {CATS.map(c => <option key={c.id} value={c.id}>{c.label}</option>)}
                     </select>
                   </div>
                   <div className="field">
                     <label>{tr.data}</label>
                     <input className="input" type="date" value={form.data} onChange={e => setForm(f => ({ ...f, data: e.target.value }))} />
+                  </div>
+                </div>
+                <div className="field">
+                  <label>{tr.atalhosLabel}</label>
+                  <div className="chips">
+                    {atalhosCat.map(a => a.pronto ? (
+                      <button key={"p-" + a.nome} type="button" className="chip" aria-pressed={form.sub === a.nome} onClick={() => escolherAtalho(a.nome)}>
+                        {a.nome}
+                      </button>
+                    ) : (
+                      <span key={a.id} className="chip-grupo" data-ativo={form.sub === a.nome}>
+                        <button type="button" className="chip" aria-pressed={form.sub === a.nome} onClick={() => escolherAtalho(a.nome)}>{a.nome}</button>
+                        <button type="button" className="chip-x" title={tr.excluirAtalho} aria-label={tr.excluirAtalho + ": " + a.nome} onClick={() => excluirAtalho(a)}>
+                          <i className="ph ph-x" />
+                        </button>
+                      </span>
+                    ))}
+                    <button type="button" className="chip chip-novo" onClick={() => { setSubTxt(""); setSubErr(""); setDialogSub(true); }}>
+                      <i className="ph ph-plus" /> {tr.novoAtalho}
+                    </button>
                   </div>
                 </div>
                 <div style={{ display: "flex", gap: 10, marginTop: 4 }}>
@@ -606,7 +745,7 @@ export default function App() {
                   <input placeholder={tr.buscar} value={busca} onChange={e => setBusca(e.target.value)} />
                 </div>
               </div>
-              <div className="card" style={{ padding: "8px 12px" }}>
+              <div className="card table-scroll" style={{ padding: "8px 12px" }}>
                 {txFiltradas.length === 0 ? <p className="empty">{tr.nenhumLanc}</p> : (
                   <table className="table">
                     <thead>
@@ -615,7 +754,10 @@ export default function App() {
                     <tbody>
                       {txFiltradas.map(tx => (
                         <tr key={tx.id}>
-                          <td>{tx.desc}</td>
+                          <td>
+                            {tx.desc}
+                            {tx.sub && <span className="tag sub-tag">{tx.sub}</span>}
+                          </td>
                           <td>
                             <span style={{ display: "inline-flex", alignItems: "center", gap: 7, fontSize: 12, color: "var(--color-neutral-400)" }}>
                               <span style={{ width: 7, height: 7, borderRadius: 2, background: getCat(tx.cat).cor }} />
@@ -657,6 +799,53 @@ export default function App() {
             <div className="dialog-actions">
               <button className="btn btn-secondary" onClick={() => setConfirmDel(null)}>{tr.cancelar}</button>
               <button className="btn btn-danger" onClick={() => delTx(confirmDel.id)}>{tr.excluir}</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {dialogApelido && (
+        <div className="dialog-backdrop" onClick={() => dialogApelido === "editar" && !salvandoApelido && setDialogApelido(null)}>
+          <div className="dialog" role="dialog" aria-modal="true" onClick={e => e.stopPropagation()}>
+            <h4 style={{ margin: 0 }}>{dialogApelido === "novo" ? tr.apelidoTitulo : tr.perfilTitulo}</h4>
+            <p style={{ margin: 0, fontSize: 14, color: "var(--color-neutral-400)" }}>
+              {dialogApelido === "novo" ? tr.apelidoDesc : tr.perfilDesc}
+            </p>
+            <div className="field">
+              <label>{tr.apelidoLabel}</label>
+              <input className="input" value={apelidoTxt} maxLength={30} autoFocus required disabled={salvandoApelido}
+                onChange={e => { setApelidoTxt(e.target.value); setApelidoErr(""); }}
+                onKeyDown={e => e.key === "Enter" && salvarApelido()} />
+            </div>
+            {apelidoErr && <p style={{ margin: 0, fontSize: 13, color: "var(--color-negative)" }}>{apelidoErr}</p>}
+            <div className="dialog-actions">
+              {dialogApelido === "editar" && (
+                <button className="btn btn-secondary" disabled={salvandoApelido} onClick={() => setDialogApelido(null)}>{tr.cancelar}</button>
+              )}
+              <button className="btn btn-primary" disabled={salvandoApelido || !apelidoTxt.trim()} onClick={salvarApelido}>
+                {salvandoApelido ? tr.salvando : dialogApelido === "novo" ? tr.continuar : tr.salvarApelido}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {dialogSub && (
+        <div className="dialog-backdrop" onClick={() => !salvandoSub && setDialogSub(false)}>
+          <div className="dialog" role="dialog" aria-modal="true" onClick={e => e.stopPropagation()}>
+            <h4 style={{ margin: 0 }}>{tr.novoAtalhoTitulo} {getCat(form.cat).label}</h4>
+            <div className="field">
+              <label>{tr.novoAtalhoLabel}</label>
+              <input className="input" value={subTxt} maxLength={MAX_SUB} autoFocus disabled={salvandoSub}
+                onChange={e => { setSubTxt(e.target.value); setSubErr(""); }}
+                onKeyDown={e => e.key === "Enter" && salvarAtalho()} />
+            </div>
+            {subErr && <p style={{ margin: 0, fontSize: 13, color: "var(--color-negative)" }}>{subErr}</p>}
+            <div className="dialog-actions">
+              <button className="btn btn-secondary" disabled={salvandoSub} onClick={() => setDialogSub(false)}>{tr.cancelar}</button>
+              <button className="btn btn-primary" disabled={salvandoSub || !subTxt.trim()} onClick={salvarAtalho}>
+                {salvandoSub ? tr.salvando : tr.salvarApelido}
+              </button>
             </div>
           </div>
         </div>

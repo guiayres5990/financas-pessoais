@@ -86,7 +86,7 @@ export default function Relatorio({ txs, userEmail, privado, t = {} }) {
     }
     setGerando(true);
 
-    const logoBase64 = await loadImageAsBase64(window.location.origin + "/falc-icone-creme-512.png");
+    const logoBase64 = await loadImageAsBase64(window.location.origin + "/falc-simbolo-bege-512.png");
 
     const pdf = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
     const W = 210, M = 14;
@@ -100,13 +100,14 @@ export default function Relatorio({ txs, userEmail, privado, t = {} }) {
     pdf.setFillColor(31, 24, 18);
     pdf.rect(0, 0, W, 52, "F");
 
-    // Bolha verde-petróleo
+    // Bolha café
     pdf.setFillColor(46, 35, 26);
     pdf.circle(170, 10, 30, "F");
 
     // Falcão (ícone) sobre a bolha
     if (logoBase64) {
-      pdf.addImage(logoBase64, "PNG", 160, 8, 30, 30);
+      // 24mm, centralizado na bolha (x=170) e acima dos cards (que começam em y=34)
+      pdf.addImage(logoBase64, "PNG", 158, 4, 24, 24, "falcao", "FAST");
     }
 
     // Textos do cabeçalho
@@ -211,8 +212,9 @@ export default function Relatorio({ txs, userEmail, privado, t = {} }) {
     pdf.setFontSize(7);
     pdf.setFont("helvetica", "bold");
     pdf.text("DESCRIÇÃO", M + 2, y + 4);
-    pdf.text("CATEGORIA", M + 70, y + 4);
-    pdf.text("DATA", M + 110, y + 4);
+    pdf.text("CATEGORIA", M + 54, y + 4);
+    pdf.text((t.subcategoria || "Subcategoria").toUpperCase(), M + 84, y + 4);
+    pdf.text("DATA", M + 122, y + 4);
     pdf.text("VALOR", W - M - 20, y + 4);
     y += 8;
 
@@ -225,10 +227,11 @@ export default function Relatorio({ txs, userEmail, privado, t = {} }) {
       pdf.setTextColor(31, 24, 18);
       pdf.setFontSize(8);
       pdf.setFont("helvetica", "normal");
-      const desc = tx.desc.length > 28 ? tx.desc.slice(0, 25) + "..." : tx.desc;
-      pdf.text(desc, M + 2, y + 1);
-      pdf.text(catLabel(tx.cat), M + 70, y + 1);
-      pdf.text(new Date(tx.data + "T12:00:00").toLocaleDateString("pt-BR"), M + 110, y + 1);
+      const corta = (txt, max) => (txt.length > max ? txt.slice(0, max - 3) + "..." : txt);
+      pdf.text(corta(tx.desc, 26), M + 2, y + 1);
+      pdf.text(catLabel(tx.cat), M + 54, y + 1);
+      pdf.text(corta(tx.sub || "-", 20), M + 84, y + 1);
+      pdf.text(new Date(tx.data + "T12:00:00").toLocaleDateString("pt-BR"), M + 122, y + 1);
       const val = (tx.tipo === "receita" ? "+" : "-") + m(tx.valor);
       if (tx.tipo === "receita") {
         pdf.setTextColor(122, 95, 52);
@@ -256,7 +259,7 @@ export default function Relatorio({ txs, userEmail, privado, t = {} }) {
   }
 
   return (
-    <div style={{ display: "grid", gap: 16, maxWidth: 820 }}>
+    <div style={{ display: "grid", gridTemplateColumns: "minmax(0, 1fr)", gap: 16, maxWidth: 820 }}>
       <div className="card" style={{ display: "grid", gap: 16 }}>
         <p className="card-title" style={{ margin: 0 }}>{t.periodoRelatorio || "Período do relatório"}</p>
         <div className="chips">
@@ -266,7 +269,7 @@ export default function Relatorio({ txs, userEmail, privado, t = {} }) {
             </button>
           ))}
         </div>
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr auto", gap: 12, alignItems: "end" }}>
+        <div className="rel-periodo">
           <div className="field">
             <label>{t.inicio || "Início"}</label>
             <input className="input" type="date" value={dataInicio}
@@ -292,7 +295,7 @@ export default function Relatorio({ txs, userEmail, privado, t = {} }) {
       ) : (
         <div className="card">
           <p className="card-title">{t.relatorioFinanceiro || "Prévia do relatório"}</p>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 10, marginBottom: 16 }}>
+          <div className="rel-resumo">
             {[
               [t.receitas || "Receitas", m(receitas)],
               [t.despesas || "Despesas", m(despesas)],
@@ -325,11 +328,14 @@ export default function Relatorio({ txs, userEmail, privado, t = {} }) {
           )}
 
           <p className="card-title" style={{ marginBottom: 8 }}>{t.lancamentosLista || "Lançamentos"}</p>
-          <table className="table">
+          <div className="table-scroll"><table className="table">
             <tbody>
               {[...txPeriodo].sort((a, b) => a.data.localeCompare(b.data)).map(tx => (
                 <tr key={tx.id}>
-                  <td style={{ fontSize: 13 }}>{tx.desc}</td>
+                  <td style={{ fontSize: 13 }}>
+                    {tx.desc}
+                    {tx.sub && <span className="tag sub-tag">{tx.sub}</span>}
+                  </td>
                   <td style={{ fontSize: 12, color: "var(--color-neutral-500)" }}>{catLabel(tx.cat)}</td>
                   <td style={{ fontSize: 12, color: "var(--color-neutral-600)" }}>
                     {new Date(tx.data + "T12:00:00").toLocaleDateString("pt-BR")}
@@ -340,7 +346,7 @@ export default function Relatorio({ txs, userEmail, privado, t = {} }) {
                 </tr>
               ))}
             </tbody>
-          </table>
+          </table></div>
         </div>
       )}
     </div>

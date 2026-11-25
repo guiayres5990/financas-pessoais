@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { LANGS } from "./i18n";
-import BrandMark from "./BrandMark";
+import Logo from "./Logo";
 
 const CATS_DEMO = [
   { label: { pt: "Moradia", en: "Housing", es: "Vivienda" }, valor: 1500, cor: "var(--cat-moradia)" },
@@ -53,8 +53,7 @@ export default function Landing({ onEntrar, onCriarConta, dark, onToggleTheme, l
     <div>
       <nav className="nav-bar">
         <span className="brand">
-          <BrandMark />
-          FALC
+          <Logo variant="horizontal" className="logo-landing" />
         </span>
         <div className="nav-links">
           <a href="#recursos">Recursos</a>

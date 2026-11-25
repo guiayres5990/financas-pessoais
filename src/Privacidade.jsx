@@ -1,4 +1,4 @@
-import BrandMark from "./BrandMark";
+import Logo from "./Logo";
 
 // Dados do responsável pela política (LGPD).
 // Se EMAIL_CONTATO ficar vazio, a página mostra "e-mail de contato em breve".
@@ -31,7 +31,7 @@ export default function Privacidade({ t, onVoltar, topo }) {
   return (
     <div>
       <nav className="nav-bar">
-        <span className="brand"><BrandMark />FALC</span>
+        <span className="brand"><Logo variant="horizontal" className="logo-landing" /></span>
         <div style={{ marginLeft: "auto", display: "flex", gap: 10, alignItems: "center" }}>
           {topo}
           {voltar}
