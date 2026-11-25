@@ -70,13 +70,13 @@ Cada usuário só acessa os próprios dados (por `uid`).
 - Use os tokens do `theme.css`, nunca cores fixas no JSX.
 - `src/Logo.jsx`: `variant="horizontal"` ou `"simbolo"`; tamanhos 30px (barra lateral), 40px (login), 36px (Landing/Política); no celular a barra lateral usa o símbolo. Sem texto "FALC" solto ao lado. Regerar com `node scripts/gerar-logo.js <pasta com falc-horizontal.svg e falc-simbolo.svg>` (usa `sharp`).
 - Ícones: `public/falc-icone.svg` (favicon), `public/apple-touch-icon.png` (180x180).
-- Links da Política usam `.link-destaque` (negrito + sublinhado; no claro, cor do texto com sublinhado marrom).
+- Links da Política usam `.link-destaque` (negrito + sublinhado; no claro, cor do texto com sublinhado marrom), mas NÃO dentro do menu da conta: lá o item "Legal" é igual aos outros itens (`.conta-item`).
 
 ## LGPD e Política de Privacidade
 
 - Página pública `#/privacidade` (`src/Privacidade.jsx`), no idioma salvo do app; **sem seletor de idioma** nessa página. Botão "Voltar" grande (`.btn-voltar`, 44px, seta bold) no canto superior direito.
 - 11 seções em `src/i18n.js` (`privSecoes`, `{email}` trocado pela página); seção 9 "Crianças e adolescentes"; seção 3 cita o art. 14, §1º, da LGPD para menores de 12. Pedidos sempre "pelo e-mail de privacidade"; prazo de 15 dias. Ao mudar a política, atualize `privAtualizado` nos 3 idiomas.
-- Links para a política: rodapé da Landing e do login, aceite do cadastro, menu da conta (Legal) e card "Dados opcionais".
+- Links para a política: rodapé da Landing e do login, aceite do cadastro e card "Dados opcionais" (com destaque), e o item "Legal" do menu da conta (sem destaque).
 - Aceite obrigatório no cadastro (e-mail/senha e Google na aba "Criar conta"), mencionando o responsável legal para menores. Brecha conhecida: Google na aba "Entrar" pode criar conta sem o aceite.
 - Excluir conta (Perfil → Zona de perigo): digitar EXCLUIR/DELETE/ELIMINAR; exige login há menos de 5 min; apaga `transacoes`, `subcategorias` e `perfis/{uid}` em lotes de 400 e só então `deleteUser`; se apagar os dados falhar, a conta não é apagada.
 
