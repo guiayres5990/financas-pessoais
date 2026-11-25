@@ -166,7 +166,9 @@ export default function Landing({ onEntrar, onCriarConta, dark, onToggleTheme, l
             <button className="btn btn-primary btn-lg" onClick={() => onCriarConta(email)}>{t.criarConta}</button>
           </div>
         </div>
-        <p style={{ margin: "32px 0 0", fontSize: 12, color: "var(--color-neutral-700)" }}>{t.footer}</p>
+        <p style={{ margin: "32px 0 0", fontSize: 12, color: "var(--color-neutral-700)" }}>
+          {t.footer} · <a href="#/privacidade" style={{ color: "var(--color-neutral-500)" }}>{t.privLink}</a>
+        </p>
       </section>
     </div>
   );

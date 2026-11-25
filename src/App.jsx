@@ -3,11 +3,12 @@ import { auth, db } from "./firebase";
 import {
   createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut,
   onAuthStateChanged, sendPasswordResetEmail, GoogleAuthProvider,
-  signInWithRedirect, getRedirectResult
+  signInWithRedirect, getRedirectResult, deleteUser
 } from "firebase/auth";
-import { collection, addDoc, deleteDoc, doc, onSnapshot, query, where, orderBy } from "firebase/firestore";
+import { collection, addDoc, deleteDoc, doc, onSnapshot, query, where, orderBy, getDocs, writeBatch } from "firebase/firestore";
 import Relatorio from "./Relatorio";
 import Landing from "./Landing";
+import Privacidade from "./Privacidade";
 import BrandMark from "./BrandMark";
 import { T, LANGS } from "./i18n";
 
@@ -91,6 +92,12 @@ export default function App() {
   const [confirmDel, setConfirmDel] = useState(null);
   const [form, setForm] = useState({ tipo: "despesa", valor: "", desc: "", cat: "alimentacao", data: hoje() });
   const [saving, setSaving] = useState(false);
+  const [rota, setRota] = useState(() => window.location.hash);
+  const [aceitePriv, setAceitePriv] = useState(false);
+  const [delConta, setDelConta] = useState(false);
+  const [delTxt, setDelTxt] = useState("");
+  const [delErr, setDelErr] = useState("");
+  const [excluindo, setExcluindo] = useState(false);
 
   // traduções e categorias derivadas do idioma
   const tr = T[lang] || T["pt"];
@@ -114,6 +121,19 @@ export default function App() {
     localStorage.setItem("fp_theme", dark ? "dark" : "light");
   }, [dark]);
 
+
+  // Página pública da Política de Privacidade em #/privacidade
+  useEffect(() => {
+    const aoMudar = () => setRota(window.location.hash);
+    window.addEventListener("hashchange", aoMudar);
+    return () => window.removeEventListener("hashchange", aoMudar);
+  }, []);
+  useEffect(() => { window.scrollTo(0, 0); }, [rota]);
+
+  function fecharPrivacidade() {
+    window.history.replaceState(null, "", window.location.pathname + window.location.search);
+    setRota("");
+  }
 
   useEffect(() => onAuthStateChanged(auth, u => { setUser(u); setLoading(false); }), []);
   useEffect(() => { getRedirectResult(auth).catch(() => {}); }, []);
@@ -165,6 +185,7 @@ export default function App() {
   const maxBar = Math.max(1, ...ultimos6.map(m => Math.max(m.r, m.d)));
 
   async function handleAuth() {
+    if (authMode === "cadastro" && !aceitePriv) { setAuthErr(tr.privPrecisaAceitar); return; }
     setAuthErr(""); setAuthLoading(true);
     try {
       if (authMode === "reset") { await sendPasswordResetEmail(auth, email); setResetSent(true); }
@@ -185,6 +206,7 @@ export default function App() {
   }
 
   async function handleGoogle() {
+    if (authMode === "cadastro" && !aceitePriv) { setAuthErr(tr.privPrecisaAceitar); return; }
     setAuthErr(""); setAuthLoading(true);
     try { await signInWithRedirect(auth, new GoogleAuthProvider()); }
     catch { setAuthErr(tr.erroGoogle); setAuthLoading(false); }
@@ -202,6 +224,51 @@ export default function App() {
 
   async function delTx(id) { await deleteDoc(doc(db, "transacoes", id)); setConfirmDel(null); }
 
+  // Exclusão de conta (LGPD): primeiro apaga os lançamentos, depois a conta.
+  // Se apagar os lançamentos falhar, a conta NÃO é apagada.
+  async function excluirMinhaConta() {
+    const u = auth.currentUser;
+    if (!u || excluindo) return;
+    setDelErr("");
+
+    // O Firebase só deixa excluir a conta se o login foi recente (5 minutos)
+    const ultimoLogin = Date.parse(u.metadata.lastSignInTime || "");
+    if (!ultimoLogin || Date.now() - ultimoLogin > 5 * 60 * 1000) {
+      setDelErr(tr.excluirContaRelogin);
+      return;
+    }
+
+    setExcluindo(true);
+    try {
+      const snap = await getDocs(query(collection(db, "transacoes"), where("uid", "==", u.uid)));
+      for (let i = 0; i < snap.docs.length; i += 400) {
+        const lote = writeBatch(db);
+        snap.docs.slice(i, i + 400).forEach(d => lote.delete(d.ref));
+        await lote.commit();
+      }
+    } catch {
+      setDelErr(tr.excluirContaErroDados);
+      setExcluindo(false);
+      return;
+    }
+
+    try {
+      await deleteUser(u);
+    } catch {
+      setDelErr(tr.excluirContaErroConta);
+      setExcluindo(false);
+      return;
+    }
+
+    Object.keys(localStorage).filter(k => k.startsWith("fp_")).forEach(k => localStorage.removeItem(k));
+    setExcluindo(false);
+    setDelConta(false);
+    setTxs([]);
+    setView("dashboard");
+    setEmail(""); setSenha(""); setAceitePriv(false);
+    setTela("landing");
+  }
+
   function exportCSV() {
     const h = "Data,Tipo,Categoria,Descrição,Valor\n";
     const r = txs.map(tx => `${tx.data},${tx.tipo},${getCat(tx.cat).label},${tx.desc},${tx.valor}`).join("\n");
@@ -215,6 +282,10 @@ export default function App() {
     const d = new Date(ano, mes + delta, 1);
     setMes(d.getMonth()); setAno(d.getFullYear());
   }
+
+  if (rota === "#/privacidade") return (
+    <Privacidade t={tr} onVoltar={fecharPrivacidade} topo={<LangPicker lang={lang} setLang={setLang} />} />
+  );
 
   if (loading) return (
     <div style={{ minHeight: "100vh", display: "grid", placeItems: "center" }}>
@@ -288,6 +359,13 @@ export default function App() {
                     <input className="input" type="password" value={senha} placeholder={tr.senhaPlaceholder} onChange={e => setSenha(e.target.value)} onKeyDown={e => e.key === "Enter" && handleAuth()} />
                   </div>
                 )}
+                {authMode === "cadastro" && (
+                  <label style={{ display: "flex", alignItems: "flex-start", gap: 8, fontSize: 13, color: "var(--color-neutral-400)", cursor: "pointer" }}>
+                    <input type="checkbox" checked={aceitePriv} onChange={e => { setAceitePriv(e.target.checked); setAuthErr(""); }}
+                      style={{ marginTop: 2, accentColor: "var(--color-accent)" }} />
+                    <span>{tr.privAceito} <a href="#/privacidade">{tr.privLink}</a>.</span>
+                  </label>
+                )}
                 {authErr && <p style={{ margin: 0, fontSize: 13, color: "var(--color-negative)" }}>{authErr}</p>}
                 <button className="btn btn-primary btn-block" style={{ padding: 11 }} disabled={authLoading} onClick={handleAuth}>
                   {authLoading ? tr.aguarde : authMode === "login" ? tr.entrar : authMode === "cadastro" ? tr.criarMinhaConta : tr.enviarLink}
@@ -310,6 +388,10 @@ export default function App() {
                 )}
               </>
             )}
+
+            <p style={{ margin: "28px 0 0", textAlign: "center", fontSize: 12 }}>
+              <a href="#/privacidade" style={{ color: "var(--color-neutral-500)" }}>{tr.privLink}</a>
+            </p>
           </div>
         </div>
       </div>
@@ -344,6 +426,11 @@ export default function App() {
               <i className="ph ph-sign-out" style={{ fontSize: 15 }} />
             </button>
           </div>
+          <button className="btn btn-danger" style={{ justifyContent: "flex-start", gap: 8, fontSize: 12 }}
+            onClick={() => { setDelConta(true); setDelTxt(""); setDelErr(""); }}>
+            <i className="ph ph-trash" style={{ fontSize: 15 }} /> {tr.excluirConta}
+          </button>
+          <a href="#/privacidade" style={{ fontSize: 11, color: "var(--color-neutral-500)", textAlign: "center" }}>{tr.privLink}</a>
         </div>
       </aside>
 
@@ -570,6 +657,28 @@ export default function App() {
             <div className="dialog-actions">
               <button className="btn btn-secondary" onClick={() => setConfirmDel(null)}>{tr.cancelar}</button>
               <button className="btn btn-danger" onClick={() => delTx(confirmDel.id)}>{tr.excluir}</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {delConta && (
+        <div className="dialog-backdrop" onClick={() => !excluindo && setDelConta(false)}>
+          <div className="dialog" onClick={e => e.stopPropagation()}>
+            <h4 style={{ margin: 0 }}>{tr.excluirContaTitulo}</h4>
+            <p style={{ margin: 0, fontSize: 14, color: "var(--color-neutral-400)" }}>{tr.excluirContaAviso}</p>
+            <div className="field">
+              <label>{tr.excluirContaDigite} <strong style={{ color: "var(--color-negative)" }}>{tr.excluirContaPalavra}</strong></label>
+              <input className="input" value={delTxt} autoFocus disabled={excluindo}
+                onChange={e => { setDelTxt(e.target.value); setDelErr(""); }} />
+            </div>
+            {delErr && <p style={{ margin: 0, fontSize: 13, color: "var(--color-negative)" }}>{delErr}</p>}
+            <div className="dialog-actions">
+              <button className="btn btn-secondary" disabled={excluindo} onClick={() => setDelConta(false)}>{tr.cancelar}</button>
+              <button className="btn btn-danger" disabled={excluindo || delTxt.trim().toUpperCase() !== tr.excluirContaPalavra}
+                onClick={excluirMinhaConta}>
+                {excluindo ? tr.excluindoConta : tr.excluirContaBotao}
+              </button>
             </div>
           </div>
         </div>
