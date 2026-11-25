@@ -8,8 +8,7 @@ import {
 import { collection, addDoc, deleteDoc, doc, onSnapshot, query, where, orderBy } from "firebase/firestore";
 import Relatorio from "./Relatorio";
 import Landing from "./Landing";
-import Simulador from "./Simulador";
-import { SIM_PADRAO } from "./simulacao";
+import BrandMark from "./BrandMark";
 import { T, LANGS } from "./i18n";
 
 export const CATS_BASE = [
@@ -92,10 +91,6 @@ export default function App() {
   const [confirmDel, setConfirmDel] = useState(null);
   const [form, setForm] = useState({ tipo: "despesa", valor: "", desc: "", cat: "alimentacao", data: hoje() });
   const [saving, setSaving] = useState(false);
-  const [sim, setSim] = useState(() => {
-    try { return { ...SIM_PADRAO, ...JSON.parse(localStorage.getItem("fp_sim") || "{}") }; }
-    catch { return SIM_PADRAO; }
-  });
 
   // traduções e categorias derivadas do idioma
   const tr = T[lang] || T["pt"];
@@ -106,7 +101,6 @@ export default function App() {
     ["dashboard", tr.dashboard, "ph ph-chart-donut",  tr.dashDesc],
     ["lancar",    tr.lancar,    "ph ph-plus-circle",   tr.lancarDesc],
     ["historico", tr.historico, "ph ph-list-dashes",   tr.historicoDesc],
-    ["simulador", tr.simulador, "ph ph-scales",        tr.simuladorDesc],
     ["relatorio", tr.relatorio, "ph ph-file-text",     tr.relatorioDesc],
   ];
 
@@ -120,7 +114,6 @@ export default function App() {
     localStorage.setItem("fp_theme", dark ? "dark" : "light");
   }, [dark]);
 
-  useEffect(() => { localStorage.setItem("fp_sim", JSON.stringify(sim)); }, [sim]);
 
   useEffect(() => onAuthStateChanged(auth, u => { setUser(u); setLoading(false); }), []);
   useEffect(() => { getRedirectResult(auth).catch(() => {}); }, []);
@@ -242,7 +235,7 @@ export default function App() {
     return (
       <div className="auth">
         <aside className="auth-aside">
-          <span className="brand"><img src="/marca-capitalhub-accent.png" alt="" />Capital Hub</span>
+          <span className="brand"><BrandMark />Falc</span>
           <div>
             <h2 style={{ maxWidth: "18ch", marginBottom: 14 }}>{tr.tagline}</h2>
           </div>
@@ -329,7 +322,7 @@ export default function App() {
   return (
     <div className="shell">
       <aside className="sidebar">
-        <span className="brand brand-sm"><img src="/marca-capitalhub-accent.png" alt="" /><span>Capital Hub</span></span>
+        <span className="brand brand-sm"><BrandMark /><span>Falc</span></span>
         <nav className="side-nav">
           {VIEWS.map(([id, label, icon]) => (
             <button key={id} onClick={() => setView(id)} aria-current={view === id ? "page" : undefined}>
@@ -360,7 +353,7 @@ export default function App() {
             <h4 style={{ margin: 0 }}>{vAtual[1]}</h4>
             <p style={{ margin: "2px 0 0", fontSize: 12, color: "var(--color-neutral-600)" }}>{vAtual[3]}</p>
           </div>
-          {view !== "relatorio" && view !== "simulador" && (
+          {view !== "relatorio" && (
             <div className="month-picker">
               <button className="btn btn-icon btn-ghost" onClick={() => mudaMes(-1)}><i className="ph ph-caret-left" style={{ fontSize: 14 }} /></button>
               <span>{MESES[lang][mes]} {ano}</span>
@@ -561,12 +554,8 @@ export default function App() {
             </div>
           )}
 
-          {view === "simulador" && (
-            <Simulador txs={txs} sim={sim} setSim={setSim} privado={privado} t={tr} />
-          )}
-
           {view === "relatorio" && (
-            <Relatorio txs={txs} sim={sim} userEmail={user.email || user.displayName} privado={privado} t={tr} />
+            <Relatorio txs={txs} userEmail={user.email || user.displayName} privado={privado} t={tr} />
           )}
         </div>
       </main>

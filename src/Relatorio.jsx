@@ -1,19 +1,18 @@
 import { useState } from "react";
 import jsPDF from "jspdf";
 import { CATS_BASE, fmt } from "./App";
-import { calcularSimulacao } from "./simulacao";
 
 const CICLOS = [1, 5, 10, 15, 20, 25];
 const br = iso => iso.split("-").reverse().join("/");
 
 const CAT_COLORS = {
-  moradia:     "#7b8fd4",
-  alimentacao: "#d47b7b",
-  transporte:  "#7bd4cc",
-  lazer:       "#c8d47b",
-  saude:       "#7bd4a0",
-  educacao:    "#c47bd4",
-  outros:      "#a0a8b8",
+  moradia:     "#4F6F86",
+  alimentacao: "#B35A4A",
+  transporte:  "#A08B6C",
+  lazer:       "#B58A2E",
+  saude:       "#5F7A60",
+  educacao:    "#7F5F83",
+  outros:      "#8A7C6D",
 };
 
 function hexToRgb(hex) {
@@ -36,15 +35,12 @@ function loadImageAsBase64(src) {
   });
 }
 
-export default function Relatorio({ txs, sim, userEmail, privado, t = {} }) {
+export default function Relatorio({ txs, userEmail, privado, t = {} }) {
   const hoje = new Date();
   const [dataInicio, setDataInicio] = useState(() => new Date(hoje.getFullYear(), hoje.getMonth(), 1).toISOString().slice(0, 10));
   const [dataFim, setDataFim] = useState(() => hoje.toISOString().slice(0, 10));
   const [cicloAtivo, setCicloAtivo] = useState(null);
   const [gerando, setGerando] = useState(false);
-  const [incluirSim, setIncluirSim] = useState(true);
-  const simR = sim ? calcularSimulacao(sim, txs) : null;
-  const temSim = !!(simR && simR.valido);
 
   const m = v => (privado ? "R$ ••••" : fmt(v));
 
@@ -90,7 +86,7 @@ export default function Relatorio({ txs, sim, userEmail, privado, t = {} }) {
     }
     setGerando(true);
 
-    const logoBase64 = await loadImageAsBase64(window.location.origin + "/marca-capitalhub-light.png");
+    const logoBase64 = await loadImageAsBase64(window.location.origin + "/falc-icone-creme-512.png");
 
     const pdf = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
     const W = 210, M = 14;
@@ -101,20 +97,20 @@ export default function Relatorio({ txs, sim, userEmail, privado, t = {} }) {
     }
 
     // Cabeçalho fundo escuro
-    pdf.setFillColor(35, 37, 50);
+    pdf.setFillColor(31, 24, 18);
     pdf.rect(0, 0, W, 52, "F");
 
-    // Bolha roxa
-    pdf.setFillColor(53, 59, 128);
+    // Bolha verde-petróleo
+    pdf.setFillColor(46, 35, 26);
     pdf.circle(170, 10, 30, "F");
 
-    // Porquinho na bolha
+    // Falcão (ícone) sobre a bolha
     if (logoBase64) {
-      pdf.addImage(logoBase64, "PNG", 151, -5, 38, 38);
+      pdf.addImage(logoBase64, "PNG", 160, 8, 30, 30);
     }
 
     // Textos do cabeçalho
-    pdf.setTextColor(245, 244, 255);
+    pdf.setTextColor(243, 236, 226);
     pdf.setFontSize(9);
     pdf.setFont("helvetica", "normal");
     pdf.text("RELATÓRIO FINANCEIRO", M, 14);
@@ -133,20 +129,20 @@ export default function Relatorio({ txs, sim, userEmail, privado, t = {} }) {
     ];
     cards.forEach(([label, val], i) => {
       const x = M + i * 61;
-      pdf.setFillColor(76, 83, 151);
+      pdf.setFillColor(74, 56, 40);
       pdf.roundedRect(x, 34, 58, 14, 2, 2, "F");
-      pdf.setTextColor(210, 206, 253);
+      pdf.setTextColor(217, 205, 182);
       pdf.setFontSize(7);
       pdf.setFont("helvetica", "normal");
       pdf.text(label.toUpperCase(), x + 4, 40);
-      pdf.setTextColor(245, 244, 255);
+      pdf.setTextColor(243, 236, 226);
       pdf.setFontSize(10);
       pdf.setFont("helvetica", "bold");
       pdf.text(val, x + 4, 46);
     });
 
     y = 62;
-    pdf.setTextColor(41, 43, 49);
+    pdf.setTextColor(31, 24, 18);
 
     // Stats rápidas
     const stats = [
@@ -156,13 +152,13 @@ export default function Relatorio({ txs, sim, userEmail, privado, t = {} }) {
     ];
     stats.forEach(([val, label], i) => {
       const x = M + i * 61;
-      pdf.setFillColor(240, 241, 248);
+      pdf.setFillColor(243, 236, 226);
       pdf.roundedRect(x, y, 58, 16, 2, 2, "F");
-      pdf.setTextColor(41, 43, 49);
+      pdf.setTextColor(31, 24, 18);
       pdf.setFontSize(11);
       pdf.setFont("helvetica", "bold");
       pdf.text(val, x + 4, y + 8);
-      pdf.setTextColor(117, 121, 140);
+      pdf.setTextColor(117, 103, 90);
       pdf.setFontSize(7);
       pdf.setFont("helvetica", "normal");
       pdf.text(label, x + 4, y + 13);
@@ -172,27 +168,27 @@ export default function Relatorio({ txs, sim, userEmail, privado, t = {} }) {
     // Categorias
     if (porCat.length > 0) {
       checkPage(12);
-      pdf.setTextColor(41, 43, 49);
+      pdf.setTextColor(31, 24, 18);
       pdf.setFontSize(10);
       pdf.setFont("helvetica", "bold");
       pdf.text(t.gastosPorCategoria || "Gastos por categoria", M, y);
       y += 6;
       porCat.forEach(c => {
         checkPage(12);
-        const cor = CAT_COLORS[c.id] || "#999";
+        const cor = CAT_COLORS[c.id] || "#8A7C6D";
         const [r, g, b] = hexToRgb(cor);
         pdf.setFillColor(r, g, b);
         pdf.roundedRect(M, y, 3, 3, 0.5, 0.5, "F");
-        pdf.setTextColor(41, 43, 49);
+        pdf.setTextColor(31, 24, 18);
         pdf.setFontSize(8);
         pdf.setFont("helvetica", "normal");
         pdf.text(catLabel(c.id), M + 5, y + 2.5);
-        pdf.setTextColor(117, 121, 140);
+        pdf.setTextColor(117, 103, 90);
         pdf.text(c.qtd + " lanç. · " + Math.round((c.total / despesas) * 100) + "%", M + 60, y + 2.5);
-        pdf.setTextColor(41, 43, 49);
+        pdf.setTextColor(31, 24, 18);
         pdf.setFont("helvetica", "bold");
         pdf.text(m(c.total), W - M - pdf.getTextWidth(m(c.total)), y + 2.5);
-        pdf.setFillColor(224, 225, 234);
+        pdf.setFillColor(232, 223, 209);
         pdf.rect(M, y + 4.5, W - M * 2, 1.5, "F");
         pdf.setFillColor(r, g, b);
         pdf.rect(M, y + 4.5, (W - M * 2) * (c.total / despesas), 1.5, "F");
@@ -201,79 +197,17 @@ export default function Relatorio({ txs, sim, userEmail, privado, t = {} }) {
       y += 4;
     }
 
-    // Simulação de financiamento dos estudos
-    if (temSim && incluirSim) {
-      const nomes = { trabalhar: t.simTrabalhar, bolsa: t.simBolsaNome, credito: t.simCredito };
-      const statusTxt = { folga: t.simFolga, apertado: t.simApertado, estoura: t.simEstoura };
-      checkPage(70);
-      pdf.setTextColor(41, 43, 49);
-      pdf.setFontSize(10);
-      pdf.setFont("helvetica", "bold");
-      pdf.text(t.simTituloPDF || "Simulação", M, y);
-      y += 5;
-      pdf.setTextColor(117, 121, 140);
-      pdf.setFontSize(7);
-      pdf.setFont("helvetica", "normal");
-      pdf.text((t.simBaseUsada || "Base") + ": " + (t.simMensalidade || "") + " " + m(simR.mensalidade) +
-        " · " + (t.receita2 || "") + " " + m(simR.renda) + " · " + (t.despesas || "") + " " + m(simR.gastos), M, y);
-      y += 4;
-
-      pdf.setFillColor(240, 241, 248);
-      pdf.rect(M, y, W - M * 2, 6, "F");
-      pdf.setFont("helvetica", "bold");
-      pdf.text((t.simCenario || "Cenário").toUpperCase(), M + 2, y + 4);
-      pdf.text((t.simEntra || "Entra").toUpperCase(), M + 62, y + 4);
-      pdf.text((t.simSai || "Sai").toUpperCase(), M + 97, y + 4);
-      pdf.text((t.saldo || "Saldo").toUpperCase(), M + 132, y + 4);
-      y += 9;
-
-      simR.cenarios.forEach(c => {
-        const melhor = c.id === simR.melhor.id && c.sobra >= 0;
-        pdf.setTextColor(41, 43, 49);
-        pdf.setFontSize(8);
-        pdf.setFont("helvetica", melhor ? "bold" : "normal");
-        pdf.text((melhor ? "* " : "") + nomes[c.id], M + 2, y);
-        pdf.setFont("helvetica", "normal");
-        pdf.text(m(c.entra), M + 62, y);
-        pdf.text(m(c.sai), M + 97, y);
-        if (c.sobra >= 0) pdf.setTextColor(100, 160, 100); else pdf.setTextColor(200, 60, 60);
-        pdf.setFont("helvetica", "bold");
-        pdf.text((c.sobra < 0 ? "-" : "") + m(Math.abs(c.sobra)), M + 132, y);
-        pdf.setFont("helvetica", "normal");
-        pdf.setTextColor(117, 121, 140);
-        const st = statusTxt[c.status] || "";
-        pdf.text(st, W - M - 2 - pdf.getTextWidth(st), y);
-        y += 7;
-      });
-
-      pdf.setTextColor(41, 43, 49);
-      pdf.setFontSize(8);
-      const credito = simR.cenarios.find(c => c.id === "credito");
-      pdf.text((t.simDivida || "Dívida") + ": " + m(credito.divida), M, y);
-      y += 5;
-      const conclusao = simR.cenarios.some(c => c.sobra >= 0)
-        ? (t.simMelhor || "") + " " + nomes[simR.melhor.id] + " (" + m(simR.melhor.sobra) + ")."
-        : (t.simNenhumCabe || "");
-      pdf.setFont("helvetica", "bold");
-      pdf.splitTextToSize(conclusao, W - M * 2).forEach(l => { pdf.text(l, M, y); y += 4; });
-      pdf.setFont("helvetica", "normal");
-      pdf.setTextColor(117, 121, 140);
-      pdf.setFontSize(7);
-      pdf.splitTextToSize(t.simLembrete || "", W - M * 2).forEach(l => { pdf.text(l, M, y); y += 3.5; });
-      y += 6;
-    }
-
     // Lançamentos
     checkPage(12);
-    pdf.setTextColor(41, 43, 49);
+    pdf.setTextColor(31, 24, 18);
     pdf.setFontSize(10);
     pdf.setFont("helvetica", "bold");
     pdf.text(t.lancamentosLista || "Lançamentos", M, y);
     y += 6;
 
-    pdf.setFillColor(240, 241, 248);
+    pdf.setFillColor(243, 236, 226);
     pdf.rect(M, y, W - M * 2, 6, "F");
-    pdf.setTextColor(117, 121, 140);
+    pdf.setTextColor(117, 103, 90);
     pdf.setFontSize(7);
     pdf.setFont("helvetica", "bold");
     pdf.text("DESCRIÇÃO", M + 2, y + 4);
@@ -285,10 +219,10 @@ export default function Relatorio({ txs, sim, userEmail, privado, t = {} }) {
     [...txPeriodo].sort((a, b) => a.data.localeCompare(b.data)).forEach((tx, i) => {
       checkPage(8);
       if (i % 2 === 0) {
-        pdf.setFillColor(248, 249, 252);
+        pdf.setFillColor(250, 247, 242);
         pdf.rect(M, y - 3, W - M * 2, 7, "F");
       }
-      pdf.setTextColor(41, 43, 49);
+      pdf.setTextColor(31, 24, 18);
       pdf.setFontSize(8);
       pdf.setFont("helvetica", "normal");
       const desc = tx.desc.length > 28 ? tx.desc.slice(0, 25) + "..." : tx.desc;
@@ -297,9 +231,9 @@ export default function Relatorio({ txs, sim, userEmail, privado, t = {} }) {
       pdf.text(new Date(tx.data + "T12:00:00").toLocaleDateString("pt-BR"), M + 110, y + 1);
       const val = (tx.tipo === "receita" ? "+" : "-") + m(tx.valor);
       if (tx.tipo === "receita") {
-        pdf.setTextColor(100, 160, 100);
+        pdf.setTextColor(122, 95, 52);
       } else {
-        pdf.setTextColor(200, 60, 60);
+        pdf.setTextColor(165, 80, 63);
       }
       pdf.setFont("helvetica", "bold");
       pdf.text(val, W - M - pdf.getTextWidth(val), y + 1);
@@ -309,15 +243,15 @@ export default function Relatorio({ txs, sim, userEmail, privado, t = {} }) {
     // Rodapé
     y += 6;
     checkPage(8);
-    pdf.setFillColor(240, 241, 248);
+    pdf.setFillColor(243, 236, 226);
     pdf.rect(M, y, W - M * 2, 0.5, "F");
     y += 5;
-    pdf.setTextColor(180, 182, 195);
+    pdf.setTextColor(150, 136, 120);
     pdf.setFontSize(7);
     pdf.setFont("helvetica", "normal");
-    pdf.text("Capital Hub · " + hoje.toLocaleDateString("pt-BR") + " · " + (userEmail || ""), M, y);
+    pdf.text("Falc · " + hoje.toLocaleDateString("pt-BR") + " · " + (userEmail || ""), M, y);
 
-    pdf.save("capital-hub-" + br(dataInicio).replace(/\//g, "-") + "-a-" + br(dataFim).replace(/\//g, "-") + ".pdf");
+    pdf.save("falc-" + br(dataInicio).replace(/\//g, "-") + "-a-" + br(dataFim).replace(/\//g, "-") + ".pdf");
     setGerando(false);
   }
 
@@ -349,12 +283,6 @@ export default function Relatorio({ txs, sim, userEmail, privado, t = {} }) {
             {gerando ? (t.gerando || "Gerando…") : (t.gerarPDF || "Gerar PDF")}
           </button>
         </div>
-        {temSim && (
-          <label style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 13, color: "var(--color-neutral-400)", cursor: "pointer" }}>
-            <input type="checkbox" checked={incluirSim} onChange={e => setIncluirSim(e.target.checked)} />
-            <i className="ph ph-scales" style={{ fontSize: 15 }} /> {t.simIncluirPDF}
-          </label>
-        )}
       </div>
 
       {txPeriodo.length === 0 ? (
