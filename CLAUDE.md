@@ -21,7 +21,7 @@ Dono: Guizera (19, Administração na FGV, São Paulo). Ele está aprendendo: ex
 - Coleções do Firestore (cada usuário só acessa os próprios dados):
   - `transacoes`: `uid`, `tipo`, `valor`, `desc` (obrigatória), `cat`, `data`, `criadoEm` e `sub` (opcional, texto até 40). Índice composto uid asc + data desc.
   - `subcategorias`: `{ uid, cat, nome, criadoEm }`, atalhos criados pelo usuário. Ler só com `where("uid","==",uid)`, SEM `orderBy` (ordenar no cliente).
-  - `perfis/{uid}`: `{ apelido (1 a 30 caracteres), atualizadoEm }`.
+  - `perfis/{uid}`: `apelido` (1 a 30 caracteres) e `atualizadoEm` (sempre), mais os OPCIONAIS `cpf` (só os 11 dígitos), `nascimento` (AAAA-MM-DD), `telefone` (só dígitos, 10 a 13) e `foto` (data URL JPEG). Nomes exatamente esses. Gravar SEMPRE com `setDoc` SEM merge, objeto completo com `apelido` + `atualizadoEm: new Date()` (não `serverTimestamp`) e só os opcionais preenchidos, para campo esvaziado sumir do documento (função `salvarPerfil` no App.jsx).
 
 ## Identidade visual (FALC)
 
@@ -51,38 +51,47 @@ Não mude nome, cores ou fontes sem o dono pedir. Use os tokens CSS do `theme.cs
 
 - `src/App.jsx`: fluxo landing → login → app; views dashboard / lançar / histórico / relatório. Exporta `CATS_BASE` (moradia, alimentacao, transporte, lazer, saude, educacao, outros) e `fmt`. Seletor de idioma com bandeiras.
 - `src/MenuConta.jsx`: chip da conta no rodapé da barra lateral + menu (ver abaixo).
-- `src/subcategorias.js`: `ATALHOS` prontos por categoria (só no código) e `MAX_SUB = 40`.
+- `src/Perfil.jsx`: página de Perfil (view `perfil`, fora da navegação lateral). `src/perfilUtil.js`: validação de CPF, máscaras, limites da data e `processarFoto`. `src/Avatar.jsx`: foto ou inicial.
+- `src/subcategorias.js`: só `MAX_SUB = 40` (não há atalhos prontos).
 - `src/Relatorio.jsx`: PDF por período, com jsPDF desenhando direto.
-- `src/i18n.js`: textos em PT / EN / ES (`T`, `LANGS`). **Todo texto novo deve existir nos 3 idiomas.** Os nomes dos atalhos prontos ficam em `T[lang].atalhos`.
+- `src/i18n.js`: textos em PT / EN / ES (`T`, `LANGS`). **Todo texto novo deve existir nos 3 idiomas.**
 - `src/Privacidade.jsx`: Política de Privacidade (LGPD), página pública em `#/privacidade`.
 - `src/Logo.jsx`, `src/Landing.jsx`, `src/theme.css`, `src/firebase.js`, `vercel.json`, `scripts/gerar-logo.js`.
 - Gráficos: donut em CSS conic-gradient e barras em CSS (sem Chart.js).
 
-## Apelido e menu da conta
+## Apelido, Perfil e menu da conta
 
-- **Apelido** em `perfis/{uid}`. No primeiro acesso (documento não existe), abre o diálogo obrigatório "Como você quer ser chamado?", já preenchido com o primeiro nome (displayName, ou o e-mail antes do @ cortado no primeiro ponto/número, com inicial maiúscula). Nos acessos seguintes o apelido vem do banco (vale em qualquer aparelho).
-- **Rodapé da barra lateral**: só o chip (avatar com a inicial do apelido, apelido e "Plano gratuito"). Ao clicar abre o menu acima do chip (268px, `var(--color-surface)`, borda 16px, `var(--shadow-lg)`), que fecha com Esc, clique fora ou ao escolher um item.
-  - Itens: cabeçalho (avatar 40px, apelido, e-mail cortado com reticências) → Perfil (editar apelido) → Exportar CSV → Legal (submenu: Política de Privacidade e Excluir minha conta, em coral) → Sair. Sem "Aparência" e sem "Cobrança".
-  - No celular (≤900px) o chip vira só o avatar e o menu abre para baixo, alinhado à direita, com `position: fixed`.
+- **Primeiro acesso** (sem `perfis/{uid}` ou sem apelido): diálogo obrigatório "Como você quer ser chamado?", já preenchido com o primeiro nome (displayName, ou o e-mail antes do @ cortado no primeiro ponto/número, com inicial maiúscula). Depois o apelido vem do banco (vale em qualquer aparelho).
+- **Página de Perfil** (menu da conta → Perfil), cards arredondados em coluna única:
+  - **Conta**: e-mail cadastrado (somente leitura), nome de exibição (1 a 30) com Salvar, avatar grande com "Trocar foto" / "Remover foto". No celular o avatar vai para cima dos campos.
+  - **Dados opcionais** (aviso com link para a Política): CPF com máscara e dígitos verificadores (depois de salvo aparece `***.***.***-XX` + botão Alterar), data de nascimento (não futura, no máximo 120 anos), telefone com máscara. Um botão "Salvar dados"; campo vazio = remove o dado antigo.
+  - **Zona de perigo**: título em coral e botão "Excluir minha conta" (abre o diálogo de exclusão).
+- **Foto**: NÃO usa Firebase Storage. Aceita JPG/PNG/WebP até 5 MB; o navegador recorta o quadrado central, reduz para no máximo 256x256 e exporta JPEG 0.8, baixando qualidade/tamanho até ficar abaixo de 120.000 caracteres; grava como data URL em `perfis/{uid}.foto`. Aparece no chip da barra lateral, no cabeçalho do menu e no Perfil.
+- **Menu da conta** (chip no rodapé da barra lateral): cabeçalho (avatar 40px, apelido, e-mail cortado com reticências) → Perfil → Exportar CSV → Legal (abre direto a Política de Privacidade) → Sair. Sem "Aparência", sem "Cobrança" e sem "Excluir" (exclusão fica no Perfil). Fecha com Esc, clique fora ou ao escolher; no celular vira só o avatar e abre para baixo com `position: fixed`.
 
-## Subcategorias
+## Subcategorias (atalhos)
 
-- Na tela Lançar, abaixo de categoria/data, há uma fileira de chips com os atalhos da categoria (prontos + do usuário) e "+ Novo".
-- Tocar num atalho guarda em `sub` e preenche a descrição (se ela estiver vazia ou ainda for o atalho anterior). Se a descrição ficar vazia ao salvar, usa o nome do atalho.
-- "+ Novo" salva em `subcategorias`. Atalhos do usuário têm × para excluir (com confirmação); os prontos não.
-- O Histórico mostra o atalho como etiqueta ao lado da descrição. CSV e PDF têm a coluna "Subcategoria".
+- Só existem os atalhos criados pelo próprio usuário (coleção `subcategorias`); NÃO há atalhos prontos no código. Na tela Lançar aparecem os da categoria escolhida + "+ Novo"; sem nenhum, mostra a dica "Crie atalhos para o que você mais repete…". Atalhos têm × para excluir (com confirmação).
+- Tocar num atalho só marca `sub`, NÃO preenche a descrição. A descrição é um "Detalhe (opcional)"; se ficar vazia, grava `desc` = nome do atalho (o banco exige `desc`).
+- No Histórico e na prévia do Relatório, a etiqueta do atalho só aparece se for diferente da descrição (sem diferenciar maiúsculas).
+
+## Exportar CSV
+
+- Arquivo `falc-lancamentos-AAAA-MM-DD.csv` (data de hoje), feito para o Excel em português: começa com BOM UTF-8 (`\uFEFF`), separador `;`, textos entre aspas (aspas internas duplicadas), quebra de linha CRLF.
+- Em PT: data `dd/mm/aaaa` e vírgula decimal; em EN/ES: data `AAAA-MM-DD` e ponto decimal. Cabeçalho traduzido: Data, Tipo, Categoria, Subcategoria, Descrição, Valor.
 
 ## Privacidade e LGPD (feito em nov/2026)
 
 - **Política de Privacidade** em `src/Privacidade.jsx`, aberta sem login em `/#/privacidade`. O App.jsx escuta o `hashchange` e mostra a página antes de qualquer outra tela; o "Voltar" limpa o hash e volta para onde a pessoa estava.
   - Responsável (controlador): **Guilherme Falcão Eubank Ayres**. Contato: **falc.empresa@gmail.com**. Os dois ficam em constantes no topo do arquivo (`RESPONSAVEL`, `EMAIL_CONTATO`).
   - O texto das 10 seções fica em `src/i18n.js` (`privSecoes`, com `{nome}` e `{email}` trocados pela página). Prazo de resposta informado: 15 dias. Ao mudar a política, atualize `privAtualizado` nos 3 idiomas.
-  - Links para a política: rodapé da Landing, embaixo do formulário de login e no menu da conta (Legal).
+  - Links para a política: rodapé da Landing, embaixo do formulário de login, no menu da conta (Legal) e no card "Dados opcionais" do Perfil.
+  - A seção 2 explica que CPF, nascimento, telefone e foto são opcionais; a seção 8 diz que a exclusão fica no Perfil, no fim da página.
 - **Aceite no cadastro:** caixa "Li e concordo com a Política de Privacidade", obrigatória para criar conta por e-mail/senha e para o botão Google na aba "Criar conta".
   - Brecha conhecida: o botão Google na aba "Entrar" pode criar uma conta nova sem o aceite.
-- **Excluir minha conta** (menu da conta → Legal): diálogo em que a pessoa digita a palavra de confirmação (EXCLUIR / DELETE / ELIMINAR, conforme o idioma).
+- **Excluir minha conta** (Perfil → Zona de perigo): diálogo em que a pessoa digita a palavra de confirmação (EXCLUIR / DELETE / ELIMINAR, conforme o idioma).
   - Só segue se o último login (`metadata.lastSignInTime`) foi há menos de 5 minutos; senão pede para sair e entrar de novo.
-  - Ordem: apaga os docs de `transacoes` e `subcategorias` do uid e o `perfis/{uid}` (se existir), em lotes de até 400 com `writeBatch`; depois `deleteUser`, limpa as chaves `fp_*` do localStorage e volta para a Landing. Se apagar os dados falhar, a conta NÃO é apagada.
+  - Ordem: apaga os docs de `transacoes` e `subcategorias` do uid e o `perfis/{uid}` (se existir; inclui foto e dados opcionais), em lotes de até 400 com `writeBatch`; depois `deleteUser`, limpa as chaves `fp_*` do localStorage e volta para a Landing. Se apagar os dados falhar, a conta NÃO é apagada.
   - Testar só com conta de teste, nunca na conta principal do dono.
 
 ## Descontinuado
