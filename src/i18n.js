@@ -173,6 +173,7 @@ export const T = {
     privAtualizado: "Última atualização: 25 de novembro de 2026.",
     privEmailEmBreve: "e-mail de contato em breve",
     privAceito: "Li e concordo com a",
+    privAceitoMenor: "Se tenho menos de 18 anos, meu responsável legal está ciente (menores de 12: a conta deve ser criada pelo responsável).",
     privPrecisaAceitar: "Para criar a conta, marque que você leu e concorda com a Política de Privacidade.",
     privSecoes: [
       { titulo: "1. Quem é o responsável", itens: [
@@ -191,6 +192,7 @@ export const T = {
         "Só para o app funcionar: mostrar a visão geral, o histórico e gerar os relatórios em PDF e CSV.",
         "Não usamos seus dados para publicidade, para traçar perfil nem para decisões automáticas.",
         "A base legal é a execução do serviço que você pediu ao criar a conta (art. 7º, V, da LGPD).",
+        "Para menores de 12 anos, o tratamento se baseia no consentimento de um pai, mãe ou responsável legal (art. 14, §1º, da LGPD). Para adolescentes, se baseia na execução do serviço, sempre no melhor interesse do jovem.",
       ] },
       { titulo: "4. Onde os dados ficam", itens: [
         "Firebase (Google): faz o login e guarda os seus lançamentos no banco de dados.",
@@ -219,10 +221,18 @@ export const T = {
         "Todos os seus lançamentos e a sua conta são apagados na hora. Isso não pode ser desfeito.",
         "Se quiser guardar uma cópia, exporte o CSV antes.",
       ] },
-      { titulo: "9. Prazo para responder", itens: [
+      { titulo: "9. Crianças e adolescentes", itens: [
+        "O FALC foi pensado para jovens e crianças aprenderem a acompanhar seus gastos e ganhos, sempre no melhor interesse deles.",
+        "Menores de 12 anos: a conta deve ser criada e acompanhada por um pai, mãe ou responsável legal, que dá o consentimento em nome da criança.",
+        "De 12 a 17 anos: recomendamos que um responsável saiba que você usa o app e acompanhe.",
+        "Os responsáveis podem pedir acesso, correção ou exclusão dos dados do menor pelo e-mail de privacidade ou excluindo a conta no Perfil.",
+        "Não pedimos mais dados do que o necessário, não fazemos publicidade e não usamos dados de menores para traçar perfil.",
+        "O login com Google segue a idade mínima do próprio Google; quem não puder usá-lo pode criar a conta com e-mail e senha.",
+      ] },
+      { titulo: "10. Prazo para responder", itens: [
         "Para pedidos e dúvidas, entre em contato pelo e-mail de privacidade. Respondemos em até 15 dias.",
       ] },
-      { titulo: "10. Mudanças nesta política", itens: [
+      { titulo: "11. Mudanças nesta política", itens: [
         "Se algo importante mudar, atualizamos esta página e a data no topo.",
       ] },
     ],
@@ -401,6 +411,7 @@ export const T = {
     privAtualizado: "Last updated: November 25, 2026.",
     privEmailEmBreve: "contact e-mail coming soon",
     privAceito: "I have read and agree to the",
+    privAceitoMenor: "If I am under 18, my legal guardian is aware (under 12: the account must be created by the guardian).",
     privPrecisaAceitar: "To create your account, confirm that you have read and agree to the Privacy Policy.",
     privSecoes: [
       { titulo: "1. Who is responsible", itens: [
@@ -419,6 +430,7 @@ export const T = {
         "Only to make the app work: show the overview and history, and generate PDF and CSV reports.",
         "We do not use your data for advertising, profiling or automated decisions.",
         "The legal basis is providing the service you asked for when creating your account (LGPD, art. 7, V).",
+        "For children under 12, processing is based on the consent of a parent or legal guardian (LGPD, art. 14, §1). For teenagers, it is based on providing the service, always in the young person's best interest.",
       ] },
       { titulo: "4. Where the data is stored", itens: [
         "Firebase (Google): handles sign-in and stores your entries in the database.",
@@ -447,10 +459,18 @@ export const T = {
         "All your entries and your account are deleted right away. This cannot be undone.",
         "If you want to keep a copy, export the CSV first.",
       ] },
-      { titulo: "9. Response time", itens: [
+      { titulo: "9. Children and teenagers", itens: [
+        "FALC was designed to help young people and children learn to track what they spend and earn, always in their best interest.",
+        "Under 12: the account must be created and followed by a parent or legal guardian, who gives consent on the child's behalf.",
+        "From 12 to 17: we recommend that a parent or guardian knows you use the app and keeps an eye on it.",
+        "Parents and guardians can request access to, correction of or deletion of the minor's data through the privacy e-mail, or by deleting the account in the Profile.",
+        "We don't ask for more data than necessary, we don't advertise and we don't use minors' data for profiling.",
+        "Google sign-in follows Google's own minimum age; anyone who can't use it can create an account with e-mail and password.",
+      ] },
+      { titulo: "10. Response time", itens: [
         "For requests and questions, contact us through the privacy e-mail. We reply within 15 days.",
       ] },
-      { titulo: "10. Changes to this policy", itens: [
+      { titulo: "11. Changes to this policy", itens: [
         "If anything important changes, we will update this page and the date at the top.",
       ] },
     ],
@@ -629,6 +649,7 @@ export const T = {
     privAtualizado: "Última actualización: 25 de noviembre de 2026.",
     privEmailEmBreve: "correo de contacto próximamente",
     privAceito: "He leído y acepto la",
+    privAceitoMenor: "Si tengo menos de 18 años, mi tutor legal está al tanto (menores de 12: la cuenta debe crearla el tutor).",
     privPrecisaAceitar: "Para crear la cuenta, marca que has leído y aceptas la Política de Privacidad.",
     privSecoes: [
       { titulo: "1. Quién es el responsable", itens: [
@@ -647,6 +668,7 @@ export const T = {
         "Solo para que la app funcione: mostrar el resumen y el historial, y generar los informes en PDF y CSV.",
         "No usamos tus datos para publicidad, para crear perfiles ni para decisiones automáticas.",
         "La base legal es la prestación del servicio que pediste al crear la cuenta (art. 7, V, de la LGPD).",
+        "Para menores de 12 años, el tratamiento se basa en el consentimiento de un padre, madre o tutor legal (art. 14, §1, de la LGPD). Para adolescentes, se basa en la prestación del servicio, siempre en el mejor interés del joven.",
       ] },
       { titulo: "4. Dónde se guardan los datos", itens: [
         "Firebase (Google): gestiona el inicio de sesión y guarda tus registros en la base de datos.",
@@ -675,10 +697,18 @@ export const T = {
         "Todos tus registros y tu cuenta se eliminan al instante. Esto no se puede deshacer.",
         "Si quieres guardar una copia, exporta el CSV antes.",
       ] },
-      { titulo: "9. Plazo de respuesta", itens: [
+      { titulo: "9. Niños y adolescentes", itens: [
+        "FALC fue pensado para que jóvenes y niños aprendan a seguir sus gastos e ingresos, siempre en su mejor interés.",
+        "Menores de 12 años: la cuenta debe ser creada y acompañada por un padre, madre o tutor legal, que da el consentimiento en nombre del niño.",
+        "De 12 a 17 años: recomendamos que un responsable sepa que usas la app y te acompañe.",
+        "Los responsables pueden pedir acceso, corrección o eliminación de los datos del menor por el correo de privacidad o eliminando la cuenta en el Perfil.",
+        "No pedimos más datos de los necesarios, no hacemos publicidad y no usamos datos de menores para crear perfiles.",
+        "El inicio de sesión con Google sigue la edad mínima del propio Google; quien no pueda usarlo puede crear la cuenta con correo y contraseña.",
+      ] },
+      { titulo: "10. Plazo de respuesta", itens: [
         "Para solicitudes y dudas, contáctanos por el correo de privacidad. Respondemos en un plazo de hasta 15 días.",
       ] },
-      { titulo: "10. Cambios en esta política", itens: [
+      { titulo: "11. Cambios en esta política", itens: [
         "Si cambia algo importante, actualizaremos esta página y la fecha de arriba.",
       ] },
     ],

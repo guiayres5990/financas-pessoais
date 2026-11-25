@@ -516,7 +516,7 @@ export default function App() {
                   <label style={{ display: "flex", alignItems: "flex-start", gap: 8, fontSize: 13, color: "var(--color-neutral-400)", cursor: "pointer" }}>
                     <input type="checkbox" checked={aceitePriv} onChange={e => { setAceitePriv(e.target.checked); setAuthErr(""); }}
                       style={{ marginTop: 2, accentColor: "var(--color-accent)" }} />
-                    <span>{tr.privAceito} <a href="#/privacidade">{tr.privLink}</a>.</span>
+                    <span>{tr.privAceito} <a href="#/privacidade">{tr.privLink}</a>. {tr.privAceitoMenor}</span>
                   </label>
                 )}
                 {authErr && <p style={{ margin: 0, fontSize: 13, color: "var(--color-negative)" }}>{authErr}</p>}

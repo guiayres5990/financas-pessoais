@@ -87,10 +87,10 @@ Não mude nome, cores ou fontes sem o dono pedir. Use os tokens CSS do `theme.cs
 
 - **Política de Privacidade** em `src/Privacidade.jsx`, aberta sem login em `/#/privacidade`. O App.jsx escuta o `hashchange` e mostra a página antes de qualquer outra tela; o "Voltar" limpa o hash e volta para onde a pessoa estava.
   - Responsável (controlador): o próprio projeto **FALC** (não citar nome de pessoa na política nem no código). Contato: **falc.empresa@gmail.com**, na constante `EMAIL_CONTATO` no topo do arquivo. Pedidos e dúvidas sempre orientam a "entrar em contato pelo e-mail de privacidade".
-  - O texto das 10 seções fica em `src/i18n.js` (`privSecoes`, com `{email}` trocado pela página). Prazo de resposta informado: 15 dias. Ao mudar a política, atualize `privAtualizado` nos 3 idiomas.
+  - O texto das 11 seções fica em `src/i18n.js` (`privSecoes`, com `{email}` trocado pela página). A seção 9 é "Crianças e adolescentes" (menores de 12: conta criada e acompanhada por um responsável, que consente; 12 a 17: recomendamos que um responsável saiba e acompanhe). A seção 3 cita o art. 14, §1º, da LGPD para menores de 12. Prazo de resposta informado: 15 dias. Ao mudar a política, atualize `privAtualizado` nos 3 idiomas.
   - Links para a política: rodapé da Landing, embaixo do formulário de login, no menu da conta (Legal) e no card "Dados opcionais" do Perfil.
   - A seção 2 explica que CPF, nascimento, telefone e foto são opcionais; a seção 8 diz que a exclusão fica no Perfil, no fim da página.
-- **Aceite no cadastro:** caixa "Li e concordo com a Política de Privacidade", obrigatória para criar conta por e-mail/senha e para o botão Google na aba "Criar conta".
+- **Aceite no cadastro:** caixa "Li e concordo com a Política de Privacidade. Se tenho menos de 18 anos, meu responsável legal está ciente (menores de 12: a conta deve ser criada pelo responsável).", obrigatória para criar conta por e-mail/senha e para o botão Google na aba "Criar conta".
   - Brecha conhecida: o botão Google na aba "Entrar" pode criar uma conta nova sem o aceite.
 - **Excluir minha conta** (Perfil → Zona de perigo): diálogo em que a pessoa digita a palavra de confirmação (EXCLUIR / DELETE / ELIMINAR, conforme o idioma).
   - Só segue se o último login (`metadata.lastSignInTime`) foi há menos de 5 minutos; senão pede para sair e entrar de novo.
