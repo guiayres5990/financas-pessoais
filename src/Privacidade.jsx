@@ -19,10 +19,11 @@ function Item({ texto, t }) {
   );
 }
 
-export default function Privacidade({ t, onVoltar, topo }) {
+// O idioma vem do App (o mesmo salvo em fp_lang; sem escolha salva, português).
+export default function Privacidade({ t, onVoltar }) {
   const voltar = (
-    <button className="btn btn-secondary" style={{ gap: 8 }} onClick={onVoltar}>
-      <i className="ph ph-arrow-left" style={{ fontSize: 15 }} /> {t.voltar}
+    <button type="button" className="btn btn-voltar" onClick={onVoltar}>
+      <i className="ph-bold ph-arrow-left" aria-hidden="true" /> {t.voltar}
     </button>
   );
 
@@ -30,10 +31,7 @@ export default function Privacidade({ t, onVoltar, topo }) {
     <div>
       <nav className="nav-bar">
         <span className="brand"><Logo variant="horizontal" className="logo-landing" /></span>
-        <div style={{ marginLeft: "auto", display: "flex", gap: 10, alignItems: "center" }}>
-          {topo}
-          {voltar}
-        </div>
+        <div className="priv-topo-acoes">{voltar}</div>
       </nav>
 
       <main className="section" style={{ maxWidth: 780, paddingTop: 32, display: "grid", gap: 14 }}>

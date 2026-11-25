@@ -437,7 +437,7 @@ export default function App() {
   }
 
   if (rota === "#/privacidade") return (
-    <Privacidade t={tr} onVoltar={fecharPrivacidade} topo={<LangPicker lang={lang} setLang={setLang} />} />
+    <Privacidade t={tr} onVoltar={fecharPrivacidade} />
   );
 
   if (loading) return (
