@@ -1,6 +1,6 @@
-# Falc — finanças pessoais para jovens/estudantes
+# FALC — finanças pessoais para jovens/estudantes
 
-App web de finanças pessoais (antigo "Capital Hub"/"Oink"; rebranding para **Falc** em nov/2026).
+App web de finanças pessoais (antigo "Capital Hub"/"Oink"; rebranding para **FALC** em nov/2026).
 Dono: Guizera (19, Administração na FGV, São Paulo). Ele está aprendendo: explique de forma clara, simples e passo a passo.
 
 ## Estado atual (em produção)
@@ -11,7 +11,7 @@ Dono: Guizera (19, Administração na FGV, São Paulo). Ele está aprendendo: ex
 - Firebase project: `financas-pessoais-14ce7`
 - Coleção `transacoes` (campos incluem `uid`, `data`), com índice composto uid asc + data desc. Regras: cada usuário só acessa seus dados (por uid).
 
-## Identidade visual (Falc)
+## Identidade visual (FALC)
 
 Não mude nome, cores ou fontes sem o dono pedir. Use os tokens CSS do `theme.css`, nunca cores fixas no JSX.
 
@@ -42,7 +42,7 @@ Não mude nome, cores ou fontes sem o dono pedir. Use os tokens CSS do `theme.cs
 
 ## Descontinuado
 
-- **Simulador de decisão** (trabalhar × bolsa × crédito educativo): removido de propósito no rebranding Falc. Não recriar sem pedido explícito.
+- **Simulador de decisão** (trabalhar × bolsa × crédito educativo): removido de propósito no rebranding FALC. Não recriar sem pedido explícito.
 
 ## Armadilhas já resolvidas (não repetir)
 

@@ -54,7 +54,7 @@ export default function Landing({ onEntrar, onCriarConta, dark, onToggleTheme, l
       <nav className="nav-bar">
         <span className="brand">
           <BrandMark />
-          Falc
+          FALC
         </span>
         <div className="nav-links">
           <a href="#recursos">Recursos</a>

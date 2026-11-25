@@ -1,4 +1,4 @@
-// Logo do Falc: no tema escuro usa o ícone creme arredondado; no claro, o logo escuro.
+// Logo do FALC: no tema escuro usa o ícone creme arredondado; no claro, o logo escuro.
 // A troca é feita por CSS (.logo-dark / .logo-light em theme.css).
 export default function BrandMark() {
   return (

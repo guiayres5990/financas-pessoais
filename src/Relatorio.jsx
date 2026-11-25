@@ -249,9 +249,9 @@ export default function Relatorio({ txs, userEmail, privado, t = {} }) {
     pdf.setTextColor(150, 136, 120);
     pdf.setFontSize(7);
     pdf.setFont("helvetica", "normal");
-    pdf.text("Falc · " + hoje.toLocaleDateString("pt-BR") + " · " + (userEmail || ""), M, y);
+    pdf.text("FALC · " + hoje.toLocaleDateString("pt-BR") + " · " + (userEmail || ""), M, y);
 
-    pdf.save("falc-" + br(dataInicio).replace(/\//g, "-") + "-a-" + br(dataFim).replace(/\//g, "-") + ".pdf");
+    pdf.save("FALC-" + br(dataInicio).replace(/\//g, "-") + "-a-" + br(dataFim).replace(/\//g, "-") + ".pdf");
     setGerando(false);
   }
 

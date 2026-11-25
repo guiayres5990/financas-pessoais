@@ -7,7 +7,7 @@ export const LANGS = [
 export const T = {
   pt: {
     // app
-    appName: "Falc",
+    appName: "FALC",
     tagline: "Controle seu dinheiro com inteligência",
     // nav
     dashboard: "Visão geral",
@@ -121,11 +121,11 @@ export const T = {
     feat3Desc: "Escolha o período, gere o PDF com resumo, categorias e cada lançamento listado.",
     ctaTitle: "Comece hoje, com o gasto do café.",
     ctaDesc: "Conta gratuita, sem cartão. Leva menos de um minuto.",
-    footer: "Falc · feito no Brasil · privacidade primeiro",
+    footer: "FALC · feito no Brasil · privacidade primeiro",
   },
 
   en: {
-    appName: "Falc",
+    appName: "FALC",
     tagline: "Control your money with intelligence",
     dashboard: "Overview",
     lancar: "Add",
@@ -228,11 +228,11 @@ export const T = {
     feat3Desc: "Choose the period, generate a PDF with summary, categories and every entry listed.",
     ctaTitle: "Start today, with the cost of a coffee.",
     ctaDesc: "Free account, no card. Takes less than a minute.",
-    footer: "Falc · made in Brazil · privacy first",
+    footer: "FALC · made in Brazil · privacy first",
   },
 
   es: {
-    appName: "Falc",
+    appName: "FALC",
     tagline: "Controla tu dinero con inteligencia",
     dashboard: "Resumen",
     lancar: "Registrar",
@@ -336,6 +336,6 @@ export const T = {
     feat3Desc: "Elige el período, genera el PDF con resumen, categorías y cada registro listado.",
     ctaTitle: "Empieza hoy, con el costo de un café.",
     ctaDesc: "Cuenta gratuita, sin tarjeta. Menos de un minuto.",
-    footer: "Falc · hecho en Brasil · privacidad primero",
+    footer: "FALC · hecho en Brasil · privacidad primero",
   },
 };

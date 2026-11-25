@@ -235,7 +235,7 @@ export default function App() {
     return (
       <div className="auth">
         <aside className="auth-aside">
-          <span className="brand"><BrandMark />Falc</span>
+          <span className="brand"><BrandMark />FALC</span>
           <div>
             <h2 style={{ maxWidth: "18ch", marginBottom: 14 }}>{tr.tagline}</h2>
           </div>
@@ -322,7 +322,7 @@ export default function App() {
   return (
     <div className="shell">
       <aside className="sidebar">
-        <span className="brand brand-sm"><BrandMark /><span>Falc</span></span>
+        <span className="brand brand-sm"><BrandMark /><span>FALC</span></span>
         <nav className="side-nav">
           {VIEWS.map(([id, label, icon]) => (
             <button key={id} onClick={() => setView(id)} aria-current={view === id ? "page" : undefined}>
