@@ -11,7 +11,8 @@ import Landing from "./Landing";
 import Privacidade from "./Privacidade";
 import Logo from "./Logo";
 import MenuConta from "./MenuConta";
-import { ATALHOS, MAX_SUB } from "./subcategorias";
+import Perfil from "./Perfil";
+import { MAX_SUB } from "./subcategorias";
 import { T, LANGS } from "./i18n";
 
 export const CATS_BASE = [
@@ -99,6 +100,7 @@ export default function App() {
   const [subTxt, setSubTxt] = useState("");
   const [subErr, setSubErr] = useState("");
   const [salvandoSub, setSalvandoSub] = useState(false);
+  const [lancErr, setLancErr] = useState("");
   const [saving, setSaving] = useState(false);
   const [rota, setRota] = useState(() => window.location.hash);
   const [aceitePriv, setAceitePriv] = useState(false);
@@ -107,9 +109,9 @@ export default function App() {
   const [delErr, setDelErr] = useState("");
   const [excluindo, setExcluindo] = useState(false);
   const excluindoRef = useRef(false);
-  // apelido (perfis/{uid}): null = ainda carregando
-  const [apelido, setApelido] = useState(null);
-  const [dialogApelido, setDialogApelido] = useState(null); // null | "novo" | "editar"
+  // perfil (perfis/{uid}): { apelido, cpf?, nascimento?, telefone?, foto? }; null = não existe / carregando
+  const [perfil, setPerfil] = useState(null);
+  const [dialogApelido, setDialogApelido] = useState(null); // null | "novo" (primeiro acesso)
   const [apelidoTxt, setApelidoTxt] = useState("");
   const [apelidoErr, setApelidoErr] = useState("");
   const [salvandoApelido, setSalvandoApelido] = useState(false);
@@ -171,14 +173,14 @@ export default function App() {
 
   // Apelido salvo em perfis/{uid}. Se ainda não existir, pede no primeiro acesso.
   useEffect(() => {
-    if (!user) { setApelido(null); setDialogApelido(null); return; }
+    if (!user) { setPerfil(null); setDialogApelido(null); return; }
     return onSnapshot(doc(db, "perfis", user.uid), snap => {
       if (excluindoRef.current) return;
-      const salvo = snap.exists() ? String(snap.data().apelido || "").trim() : "";
-      if (salvo) { setApelido(salvo); return; }
-      setApelido(primeiroNome(user));
+      const dados = snap.exists() ? snap.data() : null;
+      if (dados && String(dados.apelido || "").trim()) { setPerfil(dados); return; }
+      setPerfil(null);
       setApelidoTxt(primeiroNome(user)); setApelidoErr(""); setDialogApelido("novo");
-    }, () => setApelido(primeiroNome(user)));
+    }, () => setPerfil(null));
   }, [user]);
 
   const money = v => (privado ? "R$ ••••" : fmt(v));
@@ -199,10 +201,10 @@ export default function App() {
   const txFiltradas = txMes.filter(tx => busca === "" || tx.desc.toLowerCase().includes(busca.toLowerCase()) || getCat(tx.cat).label.toLowerCase().includes(busca.toLowerCase()) || (tx.sub || "").toLowerCase().includes(busca.toLowerCase()));
 
   // Atalhos da categoria escolhida: prontos (código) + criados pelo usuário (banco)
-  const atalhosCat = [
-    ...(ATALHOS[form.cat] || []).map(id => ({ nome: (tr.atalhos && tr.atalhos[id]) || id, pronto: true })),
-    ...subsUser.filter(s => s.cat === form.cat).map(s => ({ nome: s.nome, id: s.id, pronto: false })),
-  ];
+  // Atalhos da categoria escolhida: só os criados pelo próprio usuário (coleção "subcategorias")
+  const atalhosCat = subsUser.filter(s => s.cat === form.cat).map(s => ({ nome: s.nome, id: s.id }));
+  // Etiqueta do atalho só quando ela acrescenta algo à descrição
+  const mostraSub = tx => tx.sub && tx.sub.trim().toLowerCase() !== String(tx.desc || "").trim().toLowerCase();
 
   const donut = (() => {
     if (!porCat.length) return "conic-gradient(var(--color-neutral-900) 0 100%)";
@@ -258,40 +260,41 @@ export default function App() {
   async function addTx() {
     const v = parseFloat(String(form.valor).replace(",", "."));
     const sub = form.sub.trim().slice(0, MAX_SUB);
-    const desc = form.desc.trim() || sub; // sem descrição, usa o nome do atalho
-    if (!v || v <= 0 || !desc) return;
-    setSaving(true);
+    const desc = form.desc.trim() || sub; // detalhe vazio: grava o nome do atalho (o banco exige desc)
+    if (!v || v <= 0) { setLancErr(tr.lancFaltaValor); return; }
+    if (!desc) { setLancErr(tr.lancFaltaDesc); return; }
+    setSaving(true); setLancErr("");
     const novo = { tipo: form.tipo, valor: v, desc, cat: form.cat, data: form.data, uid: user.uid, criadoEm: new Date() };
     if (sub) novo.sub = sub; // campo opcional
-    await addDoc(collection(db, "transacoes"), novo);
-    setForm(f => ({ ...f, valor: "", desc: "", sub: "" }));
+    try {
+      await addDoc(collection(db, "transacoes"), novo);
+      setForm(f => ({ ...f, valor: "", desc: "", sub: "" }));
+      setView("historico");
+    } catch {
+      setLancErr(tr.erroSalvar);
+    }
     setSaving(false);
-    setView("historico");
   }
 
-  // Tocar num atalho: guarda em "sub" e preenche a descrição (se ela estiver vazia
-  // ou ainda for o atalho anterior). Tocar de novo desmarca.
+  // Tocar num atalho só marca "sub" (não mexe na descrição). Tocar de novo desmarca.
   function escolherAtalho(nome) {
-    setForm(f => {
-      if (f.sub === nome) return { ...f, sub: "", desc: f.desc === nome ? "" : f.desc };
-      const trocaDesc = !f.desc.trim() || f.desc === f.sub;
-      return { ...f, sub: nome, desc: trocaDesc ? nome : f.desc };
-    });
+    setLancErr("");
+    setForm(f => ({ ...f, sub: f.sub === nome ? "" : nome }));
   }
 
   function mudarCategoria(cat) {
-    setForm(f => ({ ...f, cat, sub: "", desc: f.sub && f.desc === f.sub ? "" : f.desc }));
+    setForm(f => ({ ...f, cat, sub: "" }));
   }
 
   async function salvarAtalho() {
     const nome = subTxt.trim();
     if (nome.length < 1 || nome.length > MAX_SUB) { setSubErr(tr.novoAtalhoErro); return; }
     const existente = atalhosCat.find(a => a.nome.toLowerCase() === nome.toLowerCase());
-    if (existente) { if (form.sub !== existente.nome) escolherAtalho(existente.nome); setDialogSub(false); return; }
+    if (existente) { setForm(f => ({ ...f, sub: existente.nome })); setDialogSub(false); return; }
     setSalvandoSub(true); setSubErr("");
     try {
       await addDoc(collection(db, "subcategorias"), { uid: user.uid, cat: form.cat, nome, criadoEm: serverTimestamp() });
-      escolherAtalho(nome);
+      setForm(f => ({ ...f, sub: nome }));
       setDialogSub(false);
     } catch {
       setSubErr(tr.erroSalvar);
@@ -303,7 +306,7 @@ export default function App() {
     if (!window.confirm(tr.excluirAtalhoConfirma)) return;
     try {
       await deleteDoc(doc(db, "subcategorias", a.id));
-      if (form.sub === a.nome) escolherAtalho(a.nome);
+      if (form.sub === a.nome) setForm(f => ({ ...f, sub: "" }));
     } catch {
       window.alert(tr.erroSalvar);
     }
@@ -322,17 +325,24 @@ export default function App() {
     return (base.charAt(0).toUpperCase() + base.slice(1)).slice(0, 30);
   }
 
-  function abrirPerfil() {
-    setApelidoTxt(apelido || ""); setApelidoErr(""); setDialogApelido("editar");
+  // Grava perfis/{uid} com setDoc SEM merge: objeto completo com apelido + atualizadoEm
+  // e SÓ os campos opcionais preenchidos (campo vazio some do documento).
+  async function salvarPerfil(dados) {
+    const obj = { apelido: String(dados.apelido || "").trim(), atualizadoEm: new Date() };
+    for (const campo of ["cpf", "nascimento", "telefone", "foto"]) {
+      if (dados[campo]) obj[campo] = dados[campo];
+    }
+    await setDoc(doc(db, "perfis", user.uid), obj);
+    setPerfil(obj);
   }
 
+  // Primeiro acesso: diálogo "Como você quer ser chamado?"
   async function salvarApelido() {
     const nome = apelidoTxt.trim();
     if (nome.length < 1 || nome.length > 30) { setApelidoErr(tr.apelidoErro); return; }
     setSalvandoApelido(true); setApelidoErr("");
     try {
-      await setDoc(doc(db, "perfis", user.uid), { apelido: nome, atualizadoEm: serverTimestamp() });
-      setApelido(nome);
+      await salvarPerfil({ ...(perfil || {}), apelido: nome });
       setDialogApelido(null);
     } catch {
       setApelidoErr(tr.erroSalvar);
@@ -395,15 +405,30 @@ export default function App() {
     setTela("landing");
   }
 
+  // CSV pensado para o Excel em português: BOM UTF-8 (acentos certos), ponto e vírgula
+  // como separador, textos entre aspas, vírgula decimal e data dd/mm/aaaa em PT.
   function exportCSV() {
-    // aspas em volta de cada campo para vírgulas na descrição não quebrarem as colunas
+    const pt = lang === "pt";
     const q = v => '"' + String(v ?? "").replace(/"/g, '""') + '"';
-    const h = ["Data", "Tipo", "Categoria", "Subcategoria", "Descrição", "Valor"].map(q).join(",") + "\n";
-    const r = txs.map(tx => [tx.data, tx.tipo, getCat(tx.cat).label, tx.sub || "", tx.desc, tx.valor].map(q).join(",")).join("\n");
+    const data = iso => (pt && iso ? iso.split("-").reverse().join("/") : iso || "");
+    const valor = v => { const n = (Number(v) || 0).toFixed(2); return pt ? n.replace(".", ",") : n; };
+    const cab = [tr.data, tr.tipoLabel, tr.categoria, tr.subcategoria, tr.descricao, tr.valor].map(q).join(";");
+    const linhas = [...txs].sort((a, b) => String(a.data).localeCompare(String(b.data))).map(tx => [
+      data(tx.data),
+      q(tx.tipo === "receita" ? tr.receita : tr.despesa),
+      q(getCat(tx.cat).label),
+      q(tx.sub || ""),
+      q(tx.desc),
+      valor(tx.valor),
+    ].join(";"));
+    const conteudo = "﻿" + [cab, ...linhas].join("\r\n") + "\r\n";
+    const d = new Date();
+    const hojeLocal = d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
     const a = document.createElement("a");
-    a.href = URL.createObjectURL(new Blob([h + r], { type: "text/csv" }));
-    a.download = "capital-hub.csv";
+    a.href = URL.createObjectURL(new Blob([conteudo], { type: "text/csv;charset=utf-8" }));
+    a.download = "falc-lancamentos-" + hojeLocal + ".csv";
     a.click();
+    setTimeout(() => URL.revokeObjectURL(a.href), 1000);
   }
 
   function mudaMes(delta) {
@@ -526,7 +551,9 @@ export default function App() {
     );
   }
 
-  const vAtual = VIEWS.find(v => v[0] === view) || VIEWS[0];
+  const apelido = (perfil && perfil.apelido) || primeiroNome(user);
+  const VIEW_PERFIL = ["perfil", tr.menuPerfil, "ph ph-user-circle", tr.perfilPaginaDesc];
+  const vAtual = view === "perfil" ? VIEW_PERFIL : (VIEWS.find(v => v[0] === view) || VIEWS[0]);
 
   return (
     <div className="shell">
@@ -541,13 +568,13 @@ export default function App() {
         </nav>
         <div className="side-foot">
           <MenuConta
-            apelido={apelido || primeiroNome(user)}
+            apelido={apelido}
+            foto={perfil && perfil.foto}
             email={user.email || user.displayName || ""}
             t={tr}
-            onPerfil={abrirPerfil}
+            onPerfil={() => setView("perfil")}
             onExportar={exportCSV}
             onPrivacidade={() => { window.location.hash = "#/privacidade"; }}
-            onExcluir={() => { setDelConta(true); setDelTxt(""); setDelErr(""); }}
             onSair={() => signOut(auth)}
           />
         </div>
@@ -559,7 +586,7 @@ export default function App() {
             <h4 style={{ margin: 0 }}>{vAtual[1]}</h4>
             <p style={{ margin: "2px 0 0", fontSize: 12, color: "var(--color-neutral-600)" }}>{vAtual[3]}</p>
           </div>
-          {view !== "relatorio" && (
+          {view !== "relatorio" && view !== "perfil" && (
             <div className="month-picker">
               <button className="btn btn-icon btn-ghost" onClick={() => mudaMes(-1)}><i className="ph ph-caret-left" style={{ fontSize: 14 }} /></button>
               <span>{MESES[lang][mes]} {ano}</span>
@@ -690,10 +717,6 @@ export default function App() {
                     <input inputMode="decimal" placeholder="0,00" value={form.valor} onChange={e => setForm(f => ({ ...f, valor: e.target.value }))} />
                   </div>
                 </div>
-                <div className="field">
-                  <label>{tr.descricao}</label>
-                  <input className="input" placeholder={tr.descPlaceholder} value={form.desc} onChange={e => setForm(f => ({ ...f, desc: e.target.value }))} />
-                </div>
                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
                   <div className="field">
                     <label>{tr.categoria}</label>
@@ -709,11 +732,7 @@ export default function App() {
                 <div className="field">
                   <label>{tr.atalhosLabel}</label>
                   <div className="chips">
-                    {atalhosCat.map(a => a.pronto ? (
-                      <button key={"p-" + a.nome} type="button" className="chip" aria-pressed={form.sub === a.nome} onClick={() => escolherAtalho(a.nome)}>
-                        {a.nome}
-                      </button>
-                    ) : (
+                    {atalhosCat.map(a => (
                       <span key={a.id} className="chip-grupo" data-ativo={form.sub === a.nome}>
                         <button type="button" className="chip" aria-pressed={form.sub === a.nome} onClick={() => escolherAtalho(a.nome)}>{a.nome}</button>
                         <button type="button" className="chip-x" title={tr.excluirAtalho} aria-label={tr.excluirAtalho + ": " + a.nome} onClick={() => excluirAtalho(a)}>
@@ -725,7 +744,16 @@ export default function App() {
                       <i className="ph ph-plus" /> {tr.novoAtalho}
                     </button>
                   </div>
+                  {atalhosCat.length === 0 && (
+                    <p style={{ margin: "8px 0 0", fontSize: 12, color: "var(--color-neutral-500)" }}>{tr.atalhosDica}</p>
+                  )}
                 </div>
+                <div className="field">
+                  <label>{tr.descricao}</label>
+                  <input className="input" placeholder={tr.descOpcional} value={form.desc} maxLength={120}
+                    onChange={e => { setLancErr(""); setForm(f => ({ ...f, desc: e.target.value })); }} />
+                </div>
+                {lancErr && <p style={{ margin: 0, fontSize: 13, color: "var(--color-negative)" }}>{lancErr}</p>}
                 <div style={{ display: "flex", gap: 10, marginTop: 4 }}>
                   <button className="btn btn-primary" style={{ flex: 1, padding: 11 }} disabled={saving} onClick={addTx}>
                     {saving ? tr.salvando : tr.salvar}
@@ -756,7 +784,7 @@ export default function App() {
                         <tr key={tx.id}>
                           <td>
                             {tx.desc}
-                            {tx.sub && <span className="tag sub-tag">{tx.sub}</span>}
+                            {mostraSub(tx) && <span className="tag sub-tag">{tx.sub}</span>}
                           </td>
                           <td>
                             <span style={{ display: "inline-flex", alignItems: "center", gap: 7, fontSize: 12, color: "var(--color-neutral-400)" }}>
@@ -783,6 +811,17 @@ export default function App() {
             </div>
           )}
 
+          {view === "perfil" && (
+            <Perfil
+              email={user.email || ""}
+              perfil={perfil}
+              apelidoPadrao={apelido}
+              t={tr}
+              onSalvar={salvarPerfil}
+              onExcluir={() => { setDelConta(true); setDelTxt(""); setDelErr(""); }}
+            />
+          )}
+
           {view === "relatorio" && (
             <Relatorio txs={txs} userEmail={user.email || user.displayName} privado={privado} t={tr} />
           )}
@@ -805,11 +844,11 @@ export default function App() {
       )}
 
       {dialogApelido && (
-        <div className="dialog-backdrop" onClick={() => dialogApelido === "editar" && !salvandoApelido && setDialogApelido(null)}>
+        <div className="dialog-backdrop">
           <div className="dialog" role="dialog" aria-modal="true" onClick={e => e.stopPropagation()}>
-            <h4 style={{ margin: 0 }}>{dialogApelido === "novo" ? tr.apelidoTitulo : tr.perfilTitulo}</h4>
+            <h4 style={{ margin: 0 }}>{tr.apelidoTitulo}</h4>
             <p style={{ margin: 0, fontSize: 14, color: "var(--color-neutral-400)" }}>
-              {dialogApelido === "novo" ? tr.apelidoDesc : tr.perfilDesc}
+              {tr.apelidoDesc}
             </p>
             <div className="field">
               <label>{tr.apelidoLabel}</label>
@@ -819,11 +858,8 @@ export default function App() {
             </div>
             {apelidoErr && <p style={{ margin: 0, fontSize: 13, color: "var(--color-negative)" }}>{apelidoErr}</p>}
             <div className="dialog-actions">
-              {dialogApelido === "editar" && (
-                <button className="btn btn-secondary" disabled={salvandoApelido} onClick={() => setDialogApelido(null)}>{tr.cancelar}</button>
-              )}
               <button className="btn btn-primary" disabled={salvandoApelido || !apelidoTxt.trim()} onClick={salvarApelido}>
-                {salvandoApelido ? tr.salvando : dialogApelido === "novo" ? tr.continuar : tr.salvarApelido}
+                {salvandoApelido ? tr.salvando : tr.continuar}
               </button>
             </div>
           </div>

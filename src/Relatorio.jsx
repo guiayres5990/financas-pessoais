@@ -334,7 +334,7 @@ export default function Relatorio({ txs, userEmail, privado, t = {} }) {
                 <tr key={tx.id}>
                   <td style={{ fontSize: 13 }}>
                     {tx.desc}
-                    {tx.sub && <span className="tag sub-tag">{tx.sub}</span>}
+                    {tx.sub && tx.sub.trim().toLowerCase() !== String(tx.desc || "").trim().toLowerCase() && <span className="tag sub-tag">{tx.sub}</span>}
                   </td>
                   <td style={{ fontSize: 12, color: "var(--color-neutral-500)" }}>{catLabel(tx.cat)}</td>
                   <td style={{ fontSize: 12, color: "var(--color-neutral-600)" }}>

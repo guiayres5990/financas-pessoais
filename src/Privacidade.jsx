@@ -53,7 +53,6 @@ export default function Privacidade({ t, onVoltar, topo }) {
           </section>
         ))}
 
-        <div style={{ marginTop: 8 }}>{voltar}</div>
         <p style={{ margin: "24px 0 0", fontSize: 12, color: "var(--color-neutral-600)" }}>{t.footer}</p>
       </main>
     </div>
