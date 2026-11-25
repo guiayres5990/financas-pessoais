@@ -30,10 +30,10 @@ export default function MenuConta({ apelido, foto, email, t, onPerfil, onExporta
     };
   }, [aberto]);
 
-  const Item = ({ icone, texto, onClick }) => (
+  const Item = ({ icone, texto, onClick, destaque }) => (
     <button type="button" role="menuitem" className="conta-item" onClick={onClick}>
       <i className={"ph " + icone} />
-      <span>{texto}</span>
+      <span className={destaque ? "link-destaque" : undefined}>{texto}</span>
     </button>
   );
 
@@ -61,7 +61,7 @@ export default function MenuConta({ apelido, foto, email, t, onPerfil, onExporta
           <div className="conta-div" />
           <Item icone="ph-user-circle" texto={t.menuPerfil} onClick={() => escolher(onPerfil)} />
           <Item icone="ph-download-simple" texto={t.exportarCSV} onClick={() => escolher(onExportar)} />
-          <Item icone="ph-scales" texto={t.menuLegal} onClick={() => escolher(onPrivacidade)} />
+          <Item icone="ph-scales" texto={t.menuLegal} destaque onClick={() => escolher(onPrivacidade)} />
           <div className="conta-div" />
           <Item icone="ph-sign-out" texto={t.sair} onClick={() => escolher(onSair)} />
         </div>

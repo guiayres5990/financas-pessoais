@@ -166,7 +166,7 @@ export default function Landing({ onEntrar, onCriarConta, dark, onToggleTheme, l
           </div>
         </div>
         <p style={{ margin: "32px 0 0", fontSize: 12, color: "var(--color-neutral-700)" }}>
-          {t.footer} · <a href="#/privacidade" style={{ color: "var(--color-neutral-500)" }}>{t.privLink}</a>
+          {t.footer} · <a href="#/privacidade" className="link-destaque">{t.privLink}</a>
         </p>
       </section>
     </div>

@@ -124,6 +124,24 @@ h4 { font-size: 20px; } h5 { font-size: 16px; }
 p { margin: 0 0 var(--space-3); }
 a { color: var(--color-accent); text-decoration: none; text-underline-offset: 3px; }
 a:hover { text-decoration: underline; }
+/* Link em destaque (ex.: "Política de Privacidade"): sempre sublinhado e em negrito,
+   para ficar claro que dá para clicar. No claro usa a cor do texto com sublinhado
+   marrom, porque o acento marrom fica parecido com o texto ao redor. */
+.link-destaque {
+  color: var(--color-accent); font-weight: 600; cursor: pointer; border-radius: 3px;
+  text-decoration: underline; text-decoration-color: currentColor;
+  text-decoration-thickness: 1.5px; text-underline-offset: 3px;
+}
+.link-destaque:hover, .link-destaque:focus-visible,
+.conta-item:hover .link-destaque, .conta-item:focus-visible .link-destaque {
+  color: var(--color-accent-300); text-decoration: underline; text-decoration-thickness: 2.5px;
+}
+.link-destaque:focus-visible { outline: 2px solid var(--color-accent); outline-offset: 2px; }
+[data-theme="light"] .link-destaque { color: var(--color-text); text-decoration-color: var(--color-accent); }
+[data-theme="light"] .link-destaque:hover, [data-theme="light"] .link-destaque:focus-visible,
+[data-theme="light"] .conta-item:hover .link-destaque, [data-theme="light"] .conta-item:focus-visible .link-destaque {
+  color: var(--color-accent-200); text-decoration-color: var(--color-accent-200);
+}
 img { display: block; max-width: 100%; }
 :focus { outline: none; }
 :focus-visible { outline: 2px solid var(--color-accent); outline-offset: 2px; }

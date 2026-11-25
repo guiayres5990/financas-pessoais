@@ -195,7 +195,7 @@ export default function Perfil({ email, perfil, apelidoPadrao, t, onSalvar, onEx
       <section className="perfil-card">
         <h3 className="perfil-titulo">{t.opcionaisTitulo}</h3>
         <p className="perfil-aviso">
-          {t.opcionaisAviso} <a href="#/privacidade">{t.privLink}</a>.
+          {t.opcionaisAviso} <a href="#/privacidade" className="link-destaque">{t.privLink}</a>.
         </p>
         <div className="perfil-grid">
           <div className="field">
