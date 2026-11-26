@@ -1,0 +1,135 @@
+# FALC — estado do projeto
+
+Histórico detalhado do que foi feito e decidido. O resumo para toda sessão fica no `CLAUDE.md`; o que falta fica em `docs/pendencias.md`.
+Última revisão: 26/11/2026 (commit `c294d85`). Onde não há certeza, está escrito "a confirmar".
+
+---
+
+## 1. Estrutura do projeto
+
+- App web de finanças pessoais para jovens e estudantes. Antes se chamava "Capital Hub" (mascote "Oink", porquinho roxo); virou **FALC** em nov/2026.
+- Produção: https://financas-pessoais-gray.vercel.app — deploy automático na Vercel a cada `git push` na `main` do repositório github.com/guiayres5990/financas-pessoais.
+- Pasta local: `C:\Users\windows\OneDrive\Área de Trabalho\financas-pessoais` (dentro do OneDrive). `C:\projetos\financas-pessoais` é uma cópia antiga e parada: não usar.
+- Stack: React 18 + Vite 4, Firebase Auth (e-mail/senha + Google por redirect), Firestore (projeto `financas-pessoais-14ce7`), jsPDF, Phosphor Icons (regular + bold, via unpkg), Google Fonts (Fraunces + DM Sans). `sharp` só como devDependency, para gerar o logo.
+
+### Arquivos principais
+
+| Arquivo | Para que serve |
+|---|---|
+| `index.html` | Título, favicon (`falc-icone.svg`), apple-touch-icon, fontes do Google e ícones Phosphor |
+| `src/main.jsx` | Monta o `App` e importa `theme.css` |
+| `src/App.jsx` | Rotas e telas (landing → login → app; views dashboard, lançar, histórico, relatório, perfil), login/cadastro, leitura dos dados, `salvarPerfil`, CSV, exclusão de conta. Exporta `CATS_BASE` e `fmt` |
+| `src/Landing.jsx` | Página inicial em blocos (listas `PASSOS`, `RECURSOS`, `LGPD` no topo do arquivo) |
+| `src/Privacidade.jsx` | Política de Privacidade pública em `#/privacidade` (`EMAIL_CONTATO` no topo) |
+| `src/Perfil.jsx` | Página de Perfil (Conta, Dados opcionais, Zona de perigo) |
+| `src/perfilUtil.js` | Validação de CPF, máscaras de CPF/telefone, limites da data de nascimento, `processarFoto` |
+| `src/Avatar.jsx` | Avatar redondo (foto ou inicial) |
+| `src/MenuConta.jsx` | Chip da conta no rodapé da barra lateral + menu |
+| `src/Relatorio.jsx` | Relatório e PDF por período (jsPDF desenhando direto) |
+| `src/Logo.jsx` | Logo em SVG inline: `horizontal`, `vertical`, `simbolo` |
+| `src/subcategorias.js` | Só `MAX_SUB = 40` (não há atalhos prontos) |
+| `src/i18n.js` | Todos os textos em PT / EN / ES (`T`, `LANGS`) |
+| `src/theme.css` | Tokens de cor, fontes e todos os estilos |
+| `src/firebase.js` | Inicializa Firebase (`auth`, `db`). Não mexer na configuração |
+| `scripts/gerar-logo.js` | Regera `Logo.jsx` e os ícones a partir dos SVGs aprovados |
+| `vercel.json`, `vite.config.js` | Configuração de deploy e build |
+
+Arquivos sem uso que ainda estão no repositório: `Relatorio.jsx` (raiz, versão antiga), `atualizar.bat`, `instalar.bat` (apaga arquivos de `src/` se for executado), `src/App.css` (não é importado). Ver `docs/pendencias.md`.
+
+---
+
+## 2. Firestore
+
+Cada usuário só deve acessar os próprios dados (por `uid`). As **regras de segurança foram publicadas pelo dono direto no console do Firebase**; o texto delas **não está no repositório** e não foi lido nas sessões — o conteúdo exato (o que validam e negam) está **a confirmar**. Pelo que o dono informou, existem regras para `transacoes`, `subcategorias` e `perfis` (versão "com perfis estendido"). Nunca publicar regras pelo terminal.
+
+| Coleção | Campos que o app grava | Observações |
+|---|---|---|
+| `transacoes` | `uid`, `tipo` ("receita"/"despesa"), `valor` (número), `desc` (texto, obrigatório), `cat`, `data` (AAAA-MM-DD), `criadoEm` (Date) e `sub` (opcional, até 40) | Leitura com `where("uid","==",uid)` + `orderBy("data","desc")` — exige o índice composto uid asc + data desc (já criado) |
+| `subcategorias` | `uid`, `cat`, `nome` (1 a 40), `criadoEm` (`serverTimestamp`) | Atalhos criados pelo usuário. Ler só com `where("uid","==",uid)`, **sem** `orderBy` (ordena no navegador) |
+| `perfis/{uid}` | `apelido` (1 a 30) e `atualizadoEm` (`new Date()`) sempre; opcionais `cpf` (11 dígitos), `nascimento` (AAAA-MM-DD), `telefone` (só dígitos, 10 a 13), `foto` (data URL JPEG) | Gravado SEMPRE com `setDoc` **sem merge** e só com os campos preenchidos, para campo esvaziado sumir do documento (`salvarPerfil` no `App.jsx`) |
+
+Exclusão de conta apaga `transacoes` e `subcategorias` do uid e `perfis/{uid}` (se existir), em lotes de até 400 com `writeBatch`; só depois chama `deleteUser`.
+
+---
+
+## 3. Marca e tema
+
+- Nome sempre **FALC**, em maiúsculas.
+- Paleta café + bege. Sempre usar os tokens do `theme.css` (nada de cor fixa no JSX).
+
+| Uso | Escuro (padrão) | Claro (`[data-theme="light"]`) |
+|---|---|---|
+| Fundo / superfície | `#15100D` / `#201813` | `#F4EEE4` / `#FBF8F3` |
+| Texto | `#F3ECE2` | `#1F1812` |
+| Acento | `#D9C7A3` | `#7A6240` |
+| Despesas (coral) | `#E19A8B`, barras `#BE6B5C` | `#A5503F` |
+| Logo (`--logo-falcao` / `--logo-texto`) | `#D9C7A3` / `#F3ECE2` | `#7A6240` / `#1F1812` |
+| Seção (painel do login) | `--color-section` `#2A1F17` | `--color-accent-900` |
+
+- Fontes: **Fraunces** nos títulos, **DM Sans** no texto. A Fraunces é carregada com os eixos `opsz, wght, SOFT, WONK`. Todos os títulos em Fraunces (h1–h5 e `.auth-frase`) usam: peso 500, `font-optical-sizing: none`, `font-variation-settings: "opsz" 36, "SOFT" 0, "WONK" 0`, sem ligaduras, `letter-spacing: -0.01em`. O "f" curvado e o "j" com cauda são do desenho da própria Fraunces (testado: o WONK só mexe em "h" e "n").
+- Logo final (falcão, gerado no Recraft): `src/Logo.jsx` com as formas originais; só as cores vêm do CSS. Variantes: `horizontal` (falcão + FALC ao lado), `vertical` (falcão em cima, FALC embaixo — posição original), `simbolo` (só o falcão).
+  - Tamanhos: barra lateral 30px (no celular, só o símbolo), Landing/Política 36px, rodapé 28px, CTA vertical 180px (140 no celular), login vertical 240px (96 no celular).
+  - SVG original: `C:\projetos\logo-final\falc-vertical.svg.svg`. `falc-horizontal.svg` e `falc-simbolo.svg` aprovados pelo dono ficam em `Downloads`. Regerar: `node scripts/gerar-logo.js <pasta com os dois SVGs>`.
+  - Ícones: `public/falc-icone.svg` (favicon, café com falcão bege), `public/apple-touch-icon.png` (180x180), `public/falc-simbolo-bege-512.png` (cabeçalho do PDF).
+- Classes úteis: `.btn-cheio` (ação principal), `.btn-grande` (48px), `.btn-voltar` (Voltar forte, 44px), `.link-destaque` (links da Política), `.link-alvo` / `.lp-toque` (alvo de toque de 44px), `.table-scroll` (tabela larga rola dentro do card).
+
+---
+
+## 4. Telas e funcionalidades
+
+- **Landing** (rolagem única, blocos espaçados): (a) hero com o título "Veja seu dinheiro com olhos de falcão.", subtítulo "Organização, planejamento e controle financeiro: tudo o que o FALC entrega para você.", botões "Começar agora" (cheio) e "Já tenho conta", a linha "Seus dados são só seus. Exclua sua conta quando quiser." e o cartão de exemplo do saldo; (b) "Como funciona" — título "Cada real com um destino." e 3 passos (Anote, Veja, Feche o mês); (c) "Recursos" — 7 cartões (lançamentos com atalhos, histórico, PDF, CSV, tema claro/escuro, 3 idiomas, perfil com foto); (d) "Seus dados, protegidos" — 4 pontos tirados da Política + link; (e) CTA com o falcão vertical, a frase e "Começar agora"; (f) rodapé com logo, link da Política, idioma e tema. Os links "Recursos"/"Relatório" do cabeçalho rolam até os blocos sem mudar o hash.
+- **Login/cadastro** em 2 colunas: esquerda com fundo de seção, falcão vertical e a frase; direita com o formulário (até 420px, campos e botões de 48px, textos auxiliares de 14px+). Barra do topo com "Voltar" e idioma. No celular, o painel vira um bloco compacto no topo. Campo de senha com rótulo "Senha" e dica "Use ao menos 6 caracteres." no cadastro.
+- **Primeiro acesso:** diálogo obrigatório "Como você quer ser chamado?", sugerindo o primeiro nome (displayName ou e-mail antes do @, cortado no primeiro ponto/número).
+- **Perfil** (menu da conta → Perfil): cards Conta (e-mail só leitura, nome de exibição 1–30, avatar), Dados opcionais (CPF com dígitos verificadores e exibição `***.***.***-XX`; nascimento até 120 anos atrás e não futuro; telefone com máscara; aviso para menores de 18) e Zona de perigo (excluir conta).
+  - Avatar é um botão: sem foto abre o seletor; com foto abre um mini menu "Mudar avatar" / "Remover avatar". Salva na hora.
+  - Foto sem Firebase Storage: JPG/PNG/WebP até 5 MB → recorte quadrado, máx. 256x256, JPEG 0.8, abaixo de 120.000 caracteres, gravada em `perfis/{uid}.foto`.
+- **Menu da conta:** chip com avatar no rodapé da barra lateral → Perfil, Exportar CSV, Legal (abre a Política), Sair. Fecha com Esc/clique fora; no celular vira só o avatar e abre para baixo.
+- **Lançar e atalhos:** atalhos só do usuário, por categoria, com "+ Novo" e × para excluir (com confirmação). Tocar no atalho só marca `sub`; a descrição é "Detalhe (opcional)" e, vazia, grava `desc` = nome do atalho. Histórico mostra a etiqueta do atalho só se diferente da descrição.
+- **CSV:** `falc-lancamentos-AAAA-MM-DD.csv`, para Excel em PT: BOM UTF-8, `;`, textos entre aspas, CRLF; PT com dd/mm/aaaa e vírgula decimal; EN/ES com AAAA-MM-DD e ponto. Coluna Subcategoria.
+- **Relatório/PDF:** por período (atalhos "Dia N → N"), cabeçalho escuro com o falcão bege (24mm), coluna Subcategoria, imagem comprimida (`"FAST"`).
+- **Exclusão de conta:** Perfil → Zona de perigo; digitar EXCLUIR/DELETE/ELIMINAR; exige login há menos de 5 minutos; apaga os dados e só então a conta; se apagar os dados falhar, a conta não é apagada; limpa `fp_*` do localStorage.
+- **Idioma e tema:** salvos em `fp_lang` (padrão PT) e `fp_theme`.
+
+---
+
+## 5. Política de Privacidade (LGPD)
+
+- Página pública `#/privacidade`, no idioma salvo, **sem seletor de idioma**, com "Voltar" grande no topo. Responsável (controlador): o próprio **FALC** — nenhum nome de pessoa. Contato: falc.empresa@gmail.com (`EMAIL_CONTATO`). Pedidos e dúvidas sempre "pelo e-mail de privacidade"; prazo de resposta de 15 dias. Última atualização registrada: 25/11/2026.
+- Seções: 1 Quem é o responsável · 2 Quais dados coletamos · 3 Para que usamos · 4 Onde os dados ficam · 5 O que fica no seu navegador · 6 Não vendemos nem compartilhamos · 7 Seus direitos pela LGPD · 8 Como excluir sua conta · 9 Crianças e adolescentes · 10 Prazo para responder · 11 Mudanças nesta política.
+- Menores de idade: o app pode ser usado por menores. Menores de 12: conta criada e acompanhada por um pai, mãe ou responsável legal, que consente (seção 3 cita o art. 14, §1º, da LGPD). De 12 a 17: recomendamos que um responsável saiba e acompanhe. Login com Google segue a idade mínima do Google.
+- Aceite obrigatório no cadastro: "Li e concordo com a Política de Privacidade. Se tenho menos de 18 anos, meu responsável legal está ciente (menores de 12: a conta deve ser criada pelo responsável)." Vale para e-mail/senha e para o Google na aba "Criar conta".
+- Textos da Landing sobre dados só repetem o que a Política afirma (por isso "só você lê seus dados" virou "seus dados não são vendidos nem compartilhados, e o FALC não tem anúncios").
+
+---
+
+## 6. Decisões do dono (o que ele pediu para fazer ou não fazer)
+
+- Sem atalhos (subcategorias) prontos no código: só os criados pelo usuário.
+- Sem o simulador de decisão (trabalhar × bolsa × crédito educativo) — removido de propósito no rebranding.
+- Sem seletor de idioma na página da Política.
+- Sem destaque de link no item "Legal" do menu da conta (fica igual aos outros itens).
+- Sem "Aparência", "Cobrança" ou "Excluir" no menu da conta; sem "Mudar decoração de avatar".
+- Sem nome pessoal na Política nem no código.
+- Sem etiqueta "Grátis · sem cartão" no hero.
+- Sem citar "SQL" na Landing (o banco é Firestore).
+- CPF, telefone, data de nascimento e foto são opcionais.
+- Nome sempre FALC em maiúsculas; não mudar cores, fontes ou logo sem pedido.
+- Não trocar a fonte por conta própria.
+- REGRA DE DADOS: nunca gravar no Firebase, nunca testar logado na conta real, nunca publicar regras.
+
+---
+
+## 7. Problemas já resolvidos (não repetir)
+
+- PDF: html2canvas falha com cores `oklch` → jsPDF desenhando direto. O sinal "−" (U+2212) sai quebrado no PDF → usar "-". O falcão do PDF ficava escondido atrás do card "Saldo" e o PDF tinha ~1 MB → 24mm centralizado e compressão `"FAST"` (~49 KB).
+- `CATS` vs `CATS_BASE`: usar `CATS_BASE`; não exportar nada de dentro de componente.
+- Vercel "vite: Permission denied": `node_modules/` e `dist/` fora do git.
+- Login Google com popup fechava sozinho → `signInWithRedirect`.
+- OneDrive: commit falhava ("unable to append to .git/logs/HEAD") → `git config windows.appendAtomically false` no repo.
+- Celular: tabelas e campos vazavam → `minmax(0, 1fr)` / `min-width: 0`, `.table-scroll`; Landing com cabeçalho que quebra linha.
+- Fraunces "pesada/estranha" nos títulos grandes → eixos carregados e `opsz` fixo em 36, WONK 0.
+- CSV abria numa coluna só e com acentos quebrados no Excel → BOM + `;`.
+- "Mercado / Mercado" repetido no histórico → atalho não preenche descrição; etiqueta só quando difere.
+- `.link-destaque` aplicado por engano no menu da conta → removido do item "Legal".
+- Escrever caminhos Windows com `\` em scripts Python dentro do terminal gerou caractere invisível no CLAUDE.md → usar scripts em arquivo para textos com barras invertidas.
+- Conferência de telas logadas sem gravar dados: config temporária do Vite trocando o Firebase por mocks em memória, apagada no fim (nunca commitada).
