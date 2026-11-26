@@ -23,7 +23,6 @@ Sempre respeitar a REGRA DE DADOS do `CLAUDE.md` (nada de gravar no Firebase).
   - Mensagens de erro do login (`handleAuth` em `src/App.jsx`: "E-mail não encontrado.", "Erro ao autenticar." etc.).
   - `title="Tema"` do botão de tema na barra do app e o "Total" no centro do gráfico de rosca (`src/App.jsx`).
   - Relatório/PDF (`src/Relatorio.jsx`): "Dia N → N", "lanç.", "Nenhum lançamento no período.", e no PDF "RELATÓRIO FINANCEIRO" e os cabeçalhos da tabela ("DESCRIÇÃO" etc.).
-- **Valor com ponto de milhar:** em `addTx` (`src/App.jsx`), digitar "1.000,50" vira R$ 1,00 (só a primeira vírgula é trocada e o `parseFloat` para no segundo ponto). Também falta avisar antes quando o valor passa de R$ 1 bilhão (limite das regras v4).
 
 ## Ideias futuras
 
@@ -46,5 +45,6 @@ Sempre respeitar a REGRA DE DADOS do `CLAUDE.md` (nada de gravar no Firebase).
 | Letra dos títulos (Fraunces com opsz fixo e WONK desligado) | `c294d85` |
 | Novo subtítulo e nova linha abaixo dos botões do hero; etiqueta "Grátis · sem cartão" removida | `c294d85` |
 | Rodapé da Landing só com o essencial; sombra e elevação nos cartões (`.card-hover`) | `9090169` |
-| Arquivos sem uso removidos (`instalar.bat`, `atualizar.bat`, `Relatorio.jsx` da raiz, `src/App.css`) | limpeza de 26/11/2026 |
-| Cópia das regras v4 em `firestore.rules`; conferido que os campos do app batem com elas | limpeza de 26/11/2026 |
+| Arquivos sem uso removidos (`instalar.bat`, `atualizar.bat`, `Relatorio.jsx` da raiz, `src/App.css`) | `d9856f5` |
+| Cópia das regras v4 em `firestore.rules`; conferido que os campos do app batem com elas | `d9856f5` |
+| Bug do valor: "1.000,50" virava R$ 1,00. Agora `parseValor` lê o valor, mostra a prévia e recusa entradas inválidas (lançamentos antigos gravados errado não foram mexidos: o dono apaga e recria) | COMMIT_VALOR |

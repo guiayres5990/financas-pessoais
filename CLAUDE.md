@@ -61,6 +61,7 @@ Dono: Guizera (19, Administração na FGV, São Paulo). Ele está aprendendo: ex
 - O dono usa **CMD** (PowerShell bloqueia npm). Comandos rodam dentro da pasta do projeto.
 - `npm run dev` — servidor local para conferir telas.
 - `npm run build` — sempre antes de commit/push.
+- `npm run test:valor` — testa a leitura de valores (`parseValor`), sem Firebase.
 - `git status` → `git add -A` → `git commit -m "..."` → `git push` (a Vercel publica sozinha).
 - OneDrive: o repo tem `git config windows.appendAtomically false` (sem isso o commit falha).
 
@@ -68,6 +69,7 @@ Dono: Guizera (19, Administração na FGV, São Paulo). Ele está aprendendo: ex
 
 - PDF: nunca html2canvas (falha com `oklch`); evitar "−" (U+2212) no PDF.
 - Usar `CATS_BASE` (não `CATS`); não exportar nada de dentro de componente.
+- Todo campo de dinheiro usa `parseValor(texto, lang)` de `src/parseValor.js` (nunca `parseFloat`/`Number` direto): `type="text"` + `inputMode="decimal"`, prévia "Será salvo: R$ …" e nada é gravado se a leitura der erro. Caso novo → acrescentar em `scripts/testar-valor.mjs`.
 - `node_modules/` e `dist/` fora do git.
 - `perfis/{uid}` sempre com `setDoc` sem merge (campo vazio some); `subcategorias` sem `orderBy`.
 - Textos com `\` (caminhos Windows): editar por script em arquivo, não pelo terminal.

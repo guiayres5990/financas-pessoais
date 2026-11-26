@@ -28,10 +28,12 @@ Histórico detalhado do que foi feito e decidido. O resumo para toda sessão fic
 | `src/Relatorio.jsx` | Relatório e PDF por período (jsPDF desenhando direto) |
 | `src/Logo.jsx` | Logo em SVG inline: `horizontal`, `vertical`, `simbolo` |
 | `src/subcategorias.js` | Só `MAX_SUB = 40` (não há atalhos prontos) |
+| `src/parseValor.js` | Lê o valor digitado (PT/ES: `1.000,50`; EN: `1,000.50`; com os dois separadores o último é o decimal; até 2 casas; recusa vazio, letras, negativo, zero e acima de 999.999.999,99). Usado em todo campo de dinheiro |
 | `src/i18n.js` | Todos os textos em PT / EN / ES (`T`, `LANGS`) |
 | `src/theme.css` | Tokens de cor, fontes e todos os estilos |
 | `src/firebase.js` | Inicializa Firebase (`auth`, `db`). Não mexer na configuração |
 | `scripts/gerar-logo.js` | Regera `Logo.jsx` e os ícones a partir dos SVGs aprovados |
+| `scripts/testar-valor.mjs` | Testes do `parseValor` em Node puro (`npm run test:valor`) |
 | `vercel.json`, `vite.config.js` | Configuração de deploy e build |
 | `firestore.rules` | Cópia das regras publicadas no console (v4), só para consulta. Não publicar pelo terminal |
 
@@ -43,7 +45,7 @@ Cada usuário só acessa os próprios dados (por `uid`). As **regras de seguran�
 
 O que a v4 exige: `transacoes` e `subcategorias` só podem ser criadas, lidas e apagadas pelo dono (edição negada); `perfis/{uid}` pode ser criado e atualizado. Cada coleção aceita só os campos da tabela abaixo, com estes limites extras: `valor` > 0 e < 1 bilhão, `desc` 1 a 200, `cat` até 30, `data` com 10 caracteres, `criadoEm`/`atualizadoEm` como data; `foto` até 150.000 caracteres e só `data:image/jpeg|png|webp;base64`. Todo o resto do banco é fechado.
 
-Conferido no código em 26/11/2026: os campos e formatos que o app grava batem com a v4. Única diferença: o app não barra valor ≥ R$ 1 bilhão (o banco recusa e aparece "Não foi possível salvar").
+Conferido no código em 26/11/2026: os campos e formatos que o app grava batem com a v4. O limite de valor do banco (< 1 bilhão) também é conferido no app pelo `parseValor` (máximo R$ 999.999.999,99), com aviso no campo antes de salvar.
 
 | Coleção | Campos que o app grava | Observações |
 |---|---|---|

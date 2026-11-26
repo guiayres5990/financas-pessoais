@@ -12,7 +12,8 @@
   "scripts": {
     "dev": "npx vite",
     "build": "npx vite build",
-    "preview": "npx vite preview"
+    "preview": "npx vite preview",
+    "test:valor": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/testar-valor.mjs"
   },
   "devDependencies": {
     "@vitejs/plugin-react": "^4.0.0",

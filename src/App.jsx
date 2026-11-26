@@ -13,6 +13,7 @@ import Logo from "./Logo";
 import MenuConta from "./MenuConta";
 import Perfil from "./Perfil";
 import { MAX_SUB } from "./subcategorias";
+import { parseValor } from "./parseValor";
 import { T, LANGS } from "./i18n";
 
 export const CATS_BASE = [
@@ -101,6 +102,7 @@ export default function App() {
   const [subErr, setSubErr] = useState("");
   const [salvandoSub, setSalvandoSub] = useState(false);
   const [lancErr, setLancErr] = useState("");
+  const [valorErr, setValorErr] = useState(""); // erro do campo valor ao tentar salvar vazio
   const [saving, setSaving] = useState(false);
   const [rota, setRota] = useState(() => window.location.hash);
   const [aceitePriv, setAceitePriv] = useState(false);
@@ -185,6 +187,12 @@ export default function App() {
 
   const money = v => (privado ? "R$ ••••" : fmt(v));
 
+  // Campo valor: leitura ao vivo (prévia ou erro abaixo do campo)
+  const msgValor = e => ({ casas: tr.valorCasas, maximo: tr.valorMaximo, zero: tr.lancFaltaValor, negativo: tr.lancFaltaValor, vazio: tr.lancFaltaValor }[e] || tr.valorInvalido);
+  const valorLido = parseValor(form.valor, lang);
+  const valorDigitado = String(form.valor).trim() !== "";
+  const valorMsgErro = valorDigitado ? (valorLido.ok ? "" : msgValor(valorLido.erro)) : valorErr;
+
   const txMes = txs.filter(tx => {
     const d = new Date(tx.data + "T12:00:00");
     return d.getMonth() === mes && d.getFullYear() === ano;
@@ -258,10 +266,11 @@ export default function App() {
   }
 
   async function addTx() {
-    const v = parseFloat(String(form.valor).replace(",", "."));
+    const lido = parseValor(form.valor, lang); // nunca grava se a leitura der erro
     const sub = form.sub.trim().slice(0, MAX_SUB);
     const desc = form.desc.trim() || sub; // detalhe vazio: grava o nome do atalho (o banco exige desc)
-    if (!v || v <= 0) { setLancErr(tr.lancFaltaValor); return; }
+    if (!lido.ok) { setValorErr(msgValor(lido.erro)); return; }
+    const v = lido.valor;
     if (!desc) { setLancErr(tr.lancFaltaDesc); return; }
     setSaving(true); setLancErr("");
     const novo = { tipo: form.tipo, valor: v, desc, cat: form.cat, data: form.data, uid: user.uid, criadoEm: new Date() };
@@ -715,11 +724,16 @@ export default function App() {
                   ))}
                 </div>
                 <div className="field">
-                  <label>{tr.valor}</label>
-                  <div className="valor-field">
+                  <label htmlFor="lanc-valor">{tr.valor}</label>
+                  <div className="valor-field" data-erro={!!valorMsgErro}>
                     <span>R$</span>
-                    <input inputMode="decimal" placeholder="0,00" value={form.valor} onChange={e => setForm(f => ({ ...f, valor: e.target.value }))} />
+                    <input id="lanc-valor" type="text" inputMode="decimal" autoComplete="off" placeholder={lang === "en" ? "0.00" : "0,00"}
+                      value={form.valor} aria-invalid={!!valorMsgErro} aria-describedby="lanc-valor-msg"
+                      onChange={e => { setValorErr(""); setForm(f => ({ ...f, valor: e.target.value })); }} />
                   </div>
+                  <p id="lanc-valor-msg" className={"valor-msg" + (valorMsgErro ? " valor-msg-erro" : "")} aria-live="polite">
+                    {valorMsgErro || (valorDigitado && valorLido.ok ? `${tr.valorPrevia} ${fmt(valorLido.valor)}` : "")}
+                  </p>
                 </div>
                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
                   <div className="field">
