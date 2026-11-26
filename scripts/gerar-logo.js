@@ -1,6 +1,8 @@
 // Gera src/Logo.jsx e os ícones do site a partir dos SVGs APROVADOS
 // (falc-horizontal.svg e falc-simbolo.svg). Formas intactas; só as cores viram variáveis CSS.
 // Uso (na pasta do projeto): node scripts/gerar-logo.js <pasta com falc-horizontal.svg e falc-simbolo.svg>
+// A variante "vertical" usa as letras na posição original do SVG do Recraft (sem translate);
+// se o logo mudar, meça de novo a caixa (getBBox) e atualize VB_VERTICAL abaixo.
 // Só é preciso rodar de novo se o logo mudar. Precisa do sharp (devDependency).
 const fs = require("fs");
 const path = require("path");
@@ -20,34 +22,39 @@ const letras = pathsDe(H, "#322B22");
 const falcaoS = pathsDe(S, "#92836A");
 if (falcao.length !== 3 || letras.length !== 4 || falcaoS.join() !== falcao.join()) throw new Error("paths inesperados");
 
+const VB_VERTICAL = "182.06 199.74 653.84 629.86"; // falcão + letras do SVG vertical original, +2 de folga
 const lista = arr => "[\n" + arr.map(d => `  "${d}",`).join("\n") + "\n]";
 const jsx = `// Logo final do FALC, gerado a partir dos SVGs aprovados (falc-horizontal.svg e falc-simbolo.svg).
 // As formas (paths) são as originais do Recraft; só as cores vêm do CSS:
 //   --logo-falcao (falcão) e --logo-texto (letras), definidas em theme.css.
-// variant="horizontal": falcão + "FALC" ao lado.  variant="simbolo": só o falcão.
+// variant="horizontal": falcão + "FALC" ao lado.  variant="vertical": falcão em cima e "FALC"
+// embaixo (posição original do SVG do Recraft).  variant="simbolo": só o falcão.
 
 const FALCAO = ${lista(falcao)};
 
 const LETRAS = ${lista(letras)};
 
+// Caixas medidas com getBBox (+2 de folga). Na vertical as letras ficam onde estão no original.
 const VIEWBOX = {
   horizontal: "${vbH}",
+  vertical: "${VB_VERTICAL}",
   simbolo: "${vbS}",
 };
 
 export default function Logo({ variant = "horizontal", className = "" }) {
-  const horizontal = variant !== "simbolo";
+  const v = VIEWBOX[variant] ? variant : "horizontal";
+  const comLetras = v !== "simbolo";
   return (
     <svg
       className={("logo " + className).trim()}
-      viewBox={horizontal ? VIEWBOX.horizontal : VIEWBOX.simbolo}
+      viewBox={VIEWBOX[v]}
       role="img"
       aria-label="FALC"
       xmlns="http://www.w3.org/2000/svg"
     >
       {FALCAO.map((d, i) => <path key={"f" + i} fill="var(--logo-falcao)" d={d} />)}
-      {horizontal && (
-        <g transform="translate(${translate})">
+      {comLetras && (
+        <g transform={v === "horizontal" ? "translate(${translate})" : undefined}>
           {LETRAS.map((d, i) => <path key={"l" + i} fill="var(--logo-texto)" d={d} />)}
         </g>
       )}

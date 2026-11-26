@@ -22,6 +22,8 @@ Dono: Guizera (19, Administração na FGV, São Paulo). Ele está aprendendo: ex
 ## Decisões do dono
 
 - Nome sempre **FALC**, em maiúsculas. Paleta café + bege; fontes Fraunces + DM Sans; logo final do Recraft sem redesenhar formas.
+- Frase de efeito (Landing e login): PT "Veja seu dinheiro com olhos de falcão." · EN "See your money through a falcon's eyes." · ES "Mira tu dinero con ojos de halcón."
+- Textos da Landing sobre dados só podem repetir o que a Política já afirma (não citar "SQL"; o banco é Firestore).
 - Menores de 18 anos podem usar o app. Menores de 12: conta criada e acompanhada por um responsável, que consente. De 12 a 17: recomendamos que um responsável saiba e acompanhe.
 - CPF, data de nascimento, telefone e foto são **opcionais** e só aparecem no perfil. Para menores de 18, o Perfil recomenda não preencher CPF e telefone sem um responsável.
 - O responsável (controlador) na Política é o próprio FALC; nenhum nome pessoal na política nem no código. Contato: falc.empresa@gmail.com.
@@ -34,8 +36,9 @@ Dono: Guizera (19, Administração na FGV, São Paulo). Ele está aprendendo: ex
 
 - Site: https://financas-pessoais-gray.vercel.app · Repo: github.com/guiayres5990/financas-pessoais (deploy automático na Vercel a cada `git push` na `main`).
 - Stack: React + Vite, Firebase Auth (e-mail/senha + Google via `signInWithRedirect`), Firestore (projeto `financas-pessoais-14ce7`), jsPDF, Phosphor Icons (pesos regular e bold, via unpkg no `index.html`).
-- `src/App.jsx`: rotas/telas (landing → login → app; views dashboard, lançar, histórico, relatório e perfil), gravação do perfil (`salvarPerfil`), CSV e exclusão de conta. Exporta `CATS_BASE` e `fmt`.
-- `src/Perfil.jsx` (+ `perfilUtil.js`: CPF, máscaras, data, `processarFoto`; `Avatar.jsx`), `src/MenuConta.jsx`, `src/Relatorio.jsx` (PDF com jsPDF), `src/Privacidade.jsx`, `src/Landing.jsx`, `src/Logo.jsx`, `src/subcategorias.js` (`MAX_SUB = 40`), `src/i18n.js`, `src/theme.css`, `scripts/gerar-logo.js`.
+- `src/App.jsx`: rotas/telas (landing → login → app; views dashboard, lançar, histórico, relatório e perfil), tela de login/cadastro, gravação do perfil (`salvarPerfil`), CSV e exclusão de conta. Exporta `CATS_BASE` e `fmt`.
+- `src/Landing.jsx`: página inicial em blocos (ver "Telas e comportamentos"); listas `PASSOS`, `RECURSOS` e `LGPD` no topo do arquivo.
+- `src/Perfil.jsx` (+ `perfilUtil.js`: CPF, máscaras, data, `processarFoto`; `Avatar.jsx`), `src/MenuConta.jsx`, `src/Relatorio.jsx` (PDF com jsPDF), `src/Privacidade.jsx`, `src/Logo.jsx`, `src/subcategorias.js` (`MAX_SUB = 40`), `src/i18n.js`, `src/theme.css`, `scripts/gerar-logo.js`.
 - `src/i18n.js`: textos em PT / EN / ES. **Todo texto novo deve existir nos 3 idiomas.** Idioma salvo em `fp_lang` (padrão PT); tema em `fp_theme`.
 - Gráficos em CSS (donut conic-gradient e barras), sem Chart.js.
 
@@ -49,6 +52,8 @@ Cada usuário só acessa os próprios dados (por `uid`).
 
 ## Telas e comportamentos
 
+- **Landing** (rolagem única, blocos com bastante espaço): a) hero com a frase de efeito como título, subtítulo, "Começar agora" (botão cheio) / "Já tenho conta" e o cartão de exemplo; b) "Como funciona" (título "Cada real com um destino.", 3 passos numerados: Anote, Veja, Feche o mês); c) "Recursos" (7 cartões, só o que o app tem); d) "Seus dados, protegidos" (4 pontos tirados da Política + link `.link-destaque`); e) CTA com o falcão vertical, a frase e "Começar agora"; f) rodapé com logo, link da Política, idioma e tema. Os links "Recursos"/"Relatório" do cabeçalho rolam até os blocos sem mudar o hash (o app usa `#/privacidade`).
+- **Login/cadastro** em 2 colunas: esquerda com fundo de seção (`--color-section`; no claro `--color-accent-900`), falcão vertical grande e a frase; direita com o formulário (cartão até 420px, campos e botões de 48px, rótulos e textos auxiliares de 14px+, botão principal `.btn-cheio`). Barra do topo com "Voltar" (`.btn-voltar`) e seletor de idioma. No celular o painel vira um bloco compacto no topo. A lógica de autenticação e o aceite obrigatório não mudaram.
 - **Primeiro acesso:** diálogo obrigatório "Como você quer ser chamado?" (sugere o primeiro nome).
 - **Perfil** (menu → Perfil), cards em coluna única: Conta (e-mail só leitura, nome de exibição, avatar), Dados opcionais (CPF com dígitos verificadores, mostrado `***.***.***-XX` depois de salvo; nascimento até 120 anos; telefone) e Zona de perigo (excluir conta).
   - Avatar é um `button` acessível: sem foto mostra a inicial e abre direto o seletor; com foto mostra lápis no hover/foco e abre mini menu "Mudar avatar" / "Remover avatar". Salva na hora, com "Salvando…" e aviso.
@@ -68,8 +73,10 @@ Cada usuário só acessa os próprios dados (por `uid`).
 | Logo (`--logo-falcao` / `--logo-texto`) | `#D9C7A3` / `#F3ECE2` | `#7A6240` / `#1F1812` |
 
 - Use os tokens do `theme.css`, nunca cores fixas no JSX.
-- `src/Logo.jsx`: `variant="horizontal"` ou `"simbolo"`; tamanhos 30px (barra lateral), 40px (login), 36px (Landing/Política); no celular a barra lateral usa o símbolo. Sem texto "FALC" solto ao lado. Regerar com `node scripts/gerar-logo.js <pasta com falc-horizontal.svg e falc-simbolo.svg>` (usa `sharp`).
+- `src/Logo.jsx`: `variant="horizontal"`, `"vertical"` (falcão em cima, FALC embaixo, posição original do SVG) ou `"simbolo"`; tamanhos: barra lateral 30px, Landing/Política 36px, rodapé 28px, CTA vertical 180px (140 no celular), login vertical 240px (96 no celular); no celular a barra lateral usa o símbolo. Sem texto "FALC" solto ao lado. Regerar com `node scripts/gerar-logo.js <pasta com falc-horizontal.svg e falc-simbolo.svg>` (usa `sharp`).
+- SVG original do Recraft (vertical): `C:\projetos\logo-finalalc-vertical.svg.svg`; `falc-horizontal.svg` e `falc-simbolo.svg` aprovados ficam em `Downloads`.
 - Ícones: `public/falc-icone.svg` (favicon), `public/apple-touch-icon.png` (180x180).
+- Botões: `.btn-cheio` (ação principal, fundo acento), `.btn-grande` (48px), `.lp-toque` / `.link-alvo` (alvo de toque de 44px).
 - Links da Política usam `.link-destaque` (negrito + sublinhado; no claro, cor do texto com sublinhado marrom), mas NÃO dentro do menu da conta: lá o item "Legal" é igual aos outros itens (`.conta-item`).
 
 ## LGPD e Política de Privacidade

@@ -458,37 +458,40 @@ export default function App() {
 
     return (
       <div className="auth">
-        <aside className="auth-aside">
-          <span className="brand"><Logo variant="horizontal" className="logo-login" /></span>
-          <div>
-            <h2 style={{ maxWidth: "18ch", marginBottom: 14 }}>{tr.tagline}</h2>
-          </div>
-          <button className="btn btn-ghost" style={{ justifySelf: "start" }} onClick={() => setTela("landing")}>
-            <i className="ph ph-arrow-left" /> {tr.voltar}
+        {/* topo: "Voltar" forte à esquerda e idioma à direita */}
+        <div className="auth-topbar">
+          <button type="button" className="btn btn-voltar" onClick={() => setTela("landing")}>
+            <i className="ph-bold ph-arrow-left" aria-hidden="true" /> {tr.voltar}
           </button>
+          <LangPicker lang={lang} setLang={setLang} />
+        </div>
+
+        {/* esquerda: falcão vertical + frase de efeito */}
+        <aside className="auth-aside">
+          <div className="auth-marca">
+            <Logo variant="vertical" className="logo-auth" />
+            <p className="auth-frase">{tr.fraseEfeito}</p>
+          </div>
         </aside>
 
-        <div className="auth-form">
-          <div className="inner">
-            <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: 20 }}>
-              <LangPicker lang={lang} setLang={setLang} />
-            </div>
-
+        {/* direita: formulário */}
+        <main className="auth-form">
+          <div className="auth-cartao">
             {authMode === "reset" ? (
               <>
-                <button className="btn btn-ghost" onClick={() => { setAuthMode("login"); setAuthErr(""); setResetSent(false); }}>
+                <button type="button" className="btn btn-ghost auth-link" onClick={() => { setAuthMode("login"); setAuthErr(""); setResetSent(false); }}>
                   <i className="ph ph-arrow-left" /> {tr.voltar}
                 </button>
                 <h3 style={{ margin: "14px 0 6px" }}>{tr.recuperarSenha}</h3>
-                <p style={{ fontSize: 14, color: "var(--color-neutral-500)" }}>{tr.recuperarDesc}</p>
+                <p className="auth-sub">{tr.recuperarDesc}</p>
               </>
             ) : (
               <>
                 <h3 style={{ margin: "0 0 6px" }}>{authMode === "login" ? tr.entrar : tr.criarConta}</h3>
-                <p style={{ margin: "0 0 24px", fontSize: 14, color: "var(--color-neutral-500)" }}>{tr.tagline}</p>
+                <p className="auth-sub">{tr.tagline}</p>
                 <div className="seg" style={{ marginBottom: 24 }}>
                   {[["login", tr.entrar], ["cadastro", tr.criarConta]].map(([m, l]) => (
-                    <button key={m} className="seg-opt" aria-pressed={authMode === m}
+                    <button type="button" key={m} className="seg-opt" aria-pressed={authMode === m}
                       onClick={() => { setAuthMode(m); setAuthErr(""); setResetSent(false); }}>{l}</button>
                   ))}
                 </div>
@@ -501,26 +504,27 @@ export default function App() {
                 <p>{tr.emailEnviado}</p>
               </div>
             ) : (
-              <div style={{ display: "grid", gap: 14 }}>
+              <div style={{ display: "grid", gap: 16 }}>
                 <div className="field">
-                  <label>E-mail</label>
-                  <input className="input" type="email" value={email} placeholder={tr.emailPlaceholder} onChange={e => setEmail(e.target.value)} />
+                  <label htmlFor="auth-email">{tr.emailLabel}</label>
+                  <input id="auth-email" className="input" type="email" autoComplete="email" value={email} placeholder={tr.emailPlaceholder} onChange={e => setEmail(e.target.value)} />
                 </div>
                 {authMode !== "reset" && (
                   <div className="field">
-                    <label>{tr.senhaPlaceholder}</label>
-                    <input className="input" type="password" value={senha} placeholder={tr.senhaPlaceholder} onChange={e => setSenha(e.target.value)} onKeyDown={e => e.key === "Enter" && handleAuth()} />
+                    <label htmlFor="auth-senha">{tr.senhaLabel}</label>
+                    <input id="auth-senha" className="input" type="password" autoComplete={authMode === "cadastro" ? "new-password" : "current-password"}
+                      value={senha} onChange={e => setSenha(e.target.value)} onKeyDown={e => e.key === "Enter" && handleAuth()} />
+                    {authMode === "cadastro" && <p className="auth-ajuda">{tr.senhaDica}</p>}
                   </div>
                 )}
                 {authMode === "cadastro" && (
-                  <label style={{ display: "flex", alignItems: "flex-start", gap: 8, fontSize: 13, color: "var(--color-neutral-400)", cursor: "pointer" }}>
-                    <input type="checkbox" checked={aceitePriv} onChange={e => { setAceitePriv(e.target.checked); setAuthErr(""); }}
-                      style={{ marginTop: 2, accentColor: "var(--color-accent)" }} />
+                  <label className="auth-aceite">
+                    <input type="checkbox" checked={aceitePriv} onChange={e => { setAceitePriv(e.target.checked); setAuthErr(""); }} />
                     <span>{tr.privAceito} <a href="#/privacidade" className="link-destaque">{tr.privLink}</a>. {tr.privAceitoMenor}</span>
                   </label>
                 )}
-                {authErr && <p style={{ margin: 0, fontSize: 13, color: "var(--color-negative)" }}>{authErr}</p>}
-                <button className="btn btn-primary btn-block" style={{ padding: 11 }} disabled={authLoading} onClick={handleAuth}>
+                {authErr && <p className="auth-erro" role="alert">{authErr}</p>}
+                <button type="button" className="btn btn-cheio btn-block btn-grande" disabled={authLoading} onClick={handleAuth}>
                   {authLoading ? tr.aguarde : authMode === "login" ? tr.entrar : authMode === "cadastro" ? tr.criarMinhaConta : tr.enviarLink}
                 </button>
               </div>
@@ -528,13 +532,13 @@ export default function App() {
 
             {authMode !== "reset" && !resetSent && (
               <>
-                <div className="or-row"><div /><span>ou</span><div /></div>
-                <button className="btn btn-secondary btn-block" style={{ padding: 11, gap: 10 }} disabled={authLoading} onClick={handleGoogle}>
-                  <i className="ph ph-google-logo" style={{ fontSize: 17 }} /> {tr.continuarGoogle}
+                <div className="or-row"><div /><span>{tr.ou}</span><div /></div>
+                <button type="button" className="btn btn-secondary btn-block btn-grande" style={{ gap: 10 }} disabled={authLoading} onClick={handleGoogle}>
+                  <i className="ph ph-google-logo" style={{ fontSize: 18 }} /> {tr.continuarGoogle}
                 </button>
                 {authMode === "login" && (
-                  <p style={{ margin: "20px 0 0", textAlign: "center" }}>
-                    <button className="btn btn-ghost" style={{ fontSize: 13 }} onClick={() => { setAuthMode("reset"); setAuthErr(""); }}>
+                  <p style={{ margin: "16px 0 0", textAlign: "center" }}>
+                    <button type="button" className="btn btn-ghost auth-link" onClick={() => { setAuthMode("reset"); setAuthErr(""); }}>
                       {tr.esqueciSenha}
                     </button>
                   </p>
@@ -542,11 +546,11 @@ export default function App() {
               </>
             )}
 
-            <p style={{ margin: "28px 0 0", textAlign: "center", fontSize: 12 }}>
-              <a href="#/privacidade" className="link-destaque">{tr.privLink}</a>
+            <p className="auth-politica">
+              <a href="#/privacidade" className="link-destaque link-alvo">{tr.privLink}</a>
             </p>
           </div>
-        </div>
+        </main>
       </div>
     );
   }
