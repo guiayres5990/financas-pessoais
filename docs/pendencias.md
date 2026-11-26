@@ -15,6 +15,8 @@ Sempre respeitar a REGRA DE DADOS do `CLAUDE.md` (nada de gravar no Firebase).
   - CSV abrindo certo no Excel (colunas separadas, acentos).
   - Exclusão de conta: apagar lançamentos, atalhos e perfil, e depois a conta.
 
+- **Painel de novo lançamento (teste de interface):** substituiu a página Lançar. Falta o dono testar salvar de verdade numa conta de teste (ao salvar: fecha, mostra "Lançamento salvo" e a página atualiza). Se não gostar, para desfazer: `git revert` do commit "Painel de novo lançamento (teste)" (achar com `git log --oneline --grep "Painel de novo"`).
+
 ## Próximos
 
 - **Firebase App Check** (proteção extra do banco).

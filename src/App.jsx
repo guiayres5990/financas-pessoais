@@ -13,6 +13,7 @@ import Logo from "./Logo";
 import MenuConta from "./MenuConta";
 import Perfil from "./Perfil";
 import PageHeader from "./PageHeader";
+import PainelLancamento from "./PainelLancamento";
 import { MAX_SUB } from "./subcategorias";
 import { parseValor } from "./parseValor";
 import { T, LANGS } from "./i18n";
@@ -105,6 +106,15 @@ export default function App() {
   const [lancErr, setLancErr] = useState("");
   const [valorErr, setValorErr] = useState(""); // erro do campo valor ao tentar salvar vazio
   const [classErr, setClassErr] = useState(false); // tentou salvar sem atalho e sem detalhe
+  // Painel "Novo lançamento" (substitui a antiga página Lançar)
+  const [painel, setPainel] = useState(false);
+  const [aviso, setAviso] = useState(""); // confirmação curta, ex.: "Lançamento salvo"
+  const gatilhoRef = useRef(null);       // botão que abriu o painel (recebe o foco de volta)
+  const botaoNovoRef = useRef(null);     // "Novo lançamento" do topo (desktop)
+  const fabRef = useRef(null);           // botão flutuante "+" (celular)
+  const fecharPainelRef = useRef(null);  // fecha com animação (usado pelo Cancelar)
+  const painelFoiAberto = useRef(false);
+  const avisoTimer = useRef(null);
   // o erro some assim que a pessoa escolhe um atalho ou digita um detalhe
   useEffect(() => { if (form.sub || form.desc.trim()) setClassErr(false); }, [form.sub, form.desc]);
   const [saving, setSaving] = useState(false);
@@ -129,7 +139,6 @@ export default function App() {
 
   const VIEWS = !tr ? [] : [
     ["dashboard", tr.dashboard, "ph ph-chart-donut",  tr.dashDesc],
-    ["lancar",    tr.lancar,    "ph ph-plus-circle",   null], // Lançar: sem subtítulo
     ["historico", tr.historico, "ph ph-list-dashes",   tr.historicoDesc],
     ["relatorio", tr.relatorio, "ph ph-file-text",     tr.relatorioDesc],
   ];
@@ -152,6 +161,27 @@ export default function App() {
     return () => window.removeEventListener("hashchange", aoMudar);
   }, []);
   useEffect(() => { window.scrollTo(0, 0); }, [rota]);
+
+  // Rota antiga da página Lançar (#/lancar): vai para a Visão geral e abre o painel (depois do login)
+  useEffect(() => {
+    if (rota !== "#/lancar" || !user) return;
+    window.history.replaceState(null, "", window.location.pathname + window.location.search);
+    setRota("");
+    setView("dashboard");
+    gatilhoRef.current = null;
+    setPainel(true);
+  }, [rota, user]);
+
+  // Ao fechar o painel, o foco volta para o botão que o abriu (ou para o "Novo lançamento" visível)
+  useEffect(() => {
+    if (painel) { painelFoiAberto.current = true; return; }
+    if (!painelFoiAberto.current) return;
+    painelFoiAberto.current = false;
+    const visivel = el => el && el.isConnected && el.getClientRects().length > 0; // (offsetParent é nulo no "+" fixo)
+    const alvo = [gatilhoRef.current, botaoNovoRef.current, fabRef.current].find(visivel);
+    alvo && alvo.focus();
+  }, [painel]);
+  useEffect(() => () => clearTimeout(avisoTimer.current), []);
 
   function fecharPrivacidade() {
     window.history.replaceState(null, "", window.location.pathname + window.location.search);
@@ -284,11 +314,29 @@ export default function App() {
     try {
       await addDoc(collection(db, "transacoes"), novo);
       setForm(f => ({ ...f, valor: "", desc: "", sub: "" }));
-      setView("historico");
+      // salvou: fecha o painel e confirma; a página atual se atualiza sozinha (onSnapshot)
+      setPainel(false);
+      mostrarAviso(tr.lancamentoSalvo);
     } catch {
       setLancErr(tr.erroSalvar);
     }
     setSaving(false);
+  }
+
+  function abrirPainel(e) {
+    gatilhoRef.current = (e && e.currentTarget) || null;
+    setPainel(true);
+  }
+  // Cancelar / Descartar / fundo / Esc: limpa o que foi digitado e fecha
+  function aoFecharPainel() {
+    setForm(f => ({ ...f, valor: "", desc: "", sub: "" }));
+    setValorErr(""); setClassErr(false); setLancErr("");
+    setPainel(false);
+  }
+  function mostrarAviso(texto) {
+    setAviso(texto);
+    clearTimeout(avisoTimer.current);
+    avisoTimer.current = setTimeout(() => setAviso(""), 3000);
   }
 
   // Tocar num atalho só marca "sub" (não mexe na descrição). Tocar de novo desmarca.
@@ -576,7 +624,8 @@ export default function App() {
 
   return (
     <div className="shell">
-      <aside className="sidebar">
+      {/* com o painel aberto, a página atrás fica inerte (sem foco nem clique) */}
+      <aside className="sidebar" inert={painel ? "" : undefined}>
         <span className="brand"><Logo variant="horizontal" className="logo-sidebar logo-sidebar-h" /><Logo variant="simbolo" className="logo-sidebar logo-sidebar-s" /></span>
         <nav className="side-nav">
           {VIEWS.map(([id, label, icon]) => (
@@ -599,7 +648,7 @@ export default function App() {
         </div>
       </aside>
 
-      <main style={{ minWidth: 0 }}>
+      <main style={{ minWidth: 0 }} inert={painel ? "" : undefined}>
         {/* barra do topo: só os controles globais (iguais em todas as páginas, para não mudar de altura) */}
         <div className="topbar">
           <button className="btn btn-secondary" style={{ gap: 8 }} onClick={() => setPrivado(p => !p)}>
@@ -610,7 +659,8 @@ export default function App() {
           <button className="btn btn-icon btn-secondary" title="Tema" onClick={() => setDark(d => !d)}>
             <i className={dark ? "ph ph-sun" : "ph ph-moon"} style={{ fontSize: 16 }} />
           </button>
-          <button className="btn btn-primary" style={{ gap: 8 }} onClick={() => setView("lancar")}>
+          <button ref={botaoNovoRef} className="btn btn-primary topbar-novo" style={{ gap: 8 }} onClick={abrirPainel}
+            aria-haspopup="dialog" aria-expanded={painel}>
             <i className="ph ph-plus" style={{ fontSize: 15 }} /> {tr.novoLancamentoBtn}
           </button>
         </div>
@@ -718,81 +768,6 @@ export default function App() {
             </div>
           )}
 
-          {view === "lancar" && (
-            <div style={{ maxWidth: 520, display: "grid", gap: 18 }}>
-              <div className="card" style={{ display: "grid", gap: 16, padding: 24 }}>
-                <div className="seg">
-                  {[["despesa", tr.despesa, "ph ph-arrow-down-left"], ["receita", tr.receita, "ph ph-arrow-up-right"]].map(([tp, l, ic]) => (
-                    <button key={tp} className="seg-opt" aria-pressed={form.tipo === tp} onClick={() => setForm(f => ({ ...f, tipo: tp }))}>
-                      <i className={ic} style={{ fontSize: 15 }} /> {l}
-                    </button>
-                  ))}
-                </div>
-                <div className="field">
-                  <label htmlFor="lanc-valor">{tr.valor}</label>
-                  <div className="valor-field" data-erro={!!valorMsgErro}>
-                    <span>R$</span>
-                    <input id="lanc-valor" type="text" inputMode="decimal" autoComplete="off" placeholder={lang === "en" ? "0.00" : "0,00"}
-                      value={form.valor} aria-invalid={!!valorMsgErro} aria-describedby="lanc-valor-msg"
-                      onChange={e => { setValorErr(""); setForm(f => ({ ...f, valor: e.target.value })); }} />
-                  </div>
-                  <p id="lanc-valor-msg" className={"valor-msg" + (valorMsgErro ? " valor-msg-erro" : "")} aria-live="polite">
-                    {valorMsgErro || (valorDigitado && valorLido.ok ? `${tr.valorPrevia} ${fmt(valorLido.valor)}` : "")}
-                  </p>
-                </div>
-                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
-                  <div className="field">
-                    <label>{tr.categoria}</label>
-                    <select className="input" value={form.cat} onChange={e => mudarCategoria(e.target.value)}>
-                      {CATS.map(c => <option key={c.id} value={c.id}>{c.label}</option>)}
-                    </select>
-                  </div>
-                  <div className="field">
-                    <label>{tr.data}</label>
-                    <input className="input" type="date" value={form.data} onChange={e => setForm(f => ({ ...f, data: e.target.value }))} />
-                  </div>
-                </div>
-                {/* Classificação: obrigatório escolher um atalho OU escrever um detalhe.
-                    A dica fica neutra; só vira erro (coral) depois de tentar salvar sem nenhum dos dois. */}
-                <fieldset className="lanc-classe" aria-describedby="lanc-classe-dica">
-                  <legend className="lanc-classe-titulo">{tr.classeTitulo}</legend>
-                  <p id="lanc-classe-dica" className={"lanc-classe-dica" + (classErr ? " lanc-classe-erro" : "")} aria-live="polite">
-                    {classErr && <i className="ph ph-warning-circle" aria-hidden="true" />}{tr.classeDica}
-                  </p>
-                  <span id="lanc-atalho-rotulo" className="lanc-classe-rotulo">{tr.atalhosLabel}</span>
-                  <div className="chips" role="group" aria-labelledby="lanc-atalho-rotulo">
-                    {atalhosCat.map(a => (
-                      <span key={a.id} className="chip-grupo" data-ativo={form.sub === a.nome}>
-                        <button type="button" className="chip" aria-pressed={form.sub === a.nome} onClick={() => escolherAtalho(a.nome)}>{a.nome}</button>
-                        <button type="button" className="chip-x" title={tr.excluirAtalho} aria-label={tr.excluirAtalho + ": " + a.nome} onClick={() => excluirAtalho(a)}>
-                          <i className="ph ph-x" />
-                        </button>
-                      </span>
-                    ))}
-                    {/* sem atalhos na categoria: botão em destaque convidando a criar o primeiro (não é obrigatório) */}
-                    <button type="button" className={"chip chip-novo" + (atalhosCat.length === 0 ? " chip-primeiro" : "")}
-                      onClick={() => { setSubTxt(""); setSubErr(""); setDialogSub(true); }}>
-                      <i className="ph ph-plus" /> {atalhosCat.length === 0 ? tr.primeiroAtalho : tr.novoAtalho}
-                    </button>
-                  </div>
-                  <div className="lanc-classe-ou" aria-hidden="true"><div /><span>{tr.ou}</span><div /></div>
-                  <label htmlFor="lanc-detalhe" className="lanc-classe-rotulo">{tr.detalheLabel}</label>
-                  <input id="lanc-detalhe" className="input" placeholder={tr.detalheExemplo} value={form.desc} maxLength={120}
-                    aria-invalid={classErr} aria-describedby="lanc-classe-dica"
-                    onChange={e => { setLancErr(""); setForm(f => ({ ...f, desc: e.target.value })); }} />
-                </fieldset>
-                {lancErr && <p style={{ margin: 0, fontSize: 13, color: "var(--color-negative)" }}>{lancErr}</p>}
-                <div style={{ display: "flex", gap: 10, marginTop: 4 }}>
-                  <button className="btn btn-primary" style={{ flex: 1, padding: 11 }} disabled={saving} onClick={addTx}>
-                    {saving ? tr.salvando : tr.salvar}
-                  </button>
-                  <button className="btn btn-secondary" style={{ padding: "11px 18px" }} onClick={() => setView("dashboard")}>{tr.cancelar}</button>
-                </div>
-              </div>
-              <p style={{ margin: 0, fontSize: 12, color: "var(--color-neutral-600)" }}>{tr.dicaLancamento}</p>
-            </div>
-          )}
-
           {view === "historico" && (
             <div style={{ display: "grid", gap: 16 }}>
               <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
@@ -855,6 +830,102 @@ export default function App() {
           )}
         </div>
       </main>
+
+      {/* Painel "Novo lançamento": mesmo formulário e mesma lógica da antiga página Lançar */}
+      {painel && (
+        <PainelLancamento
+          titulo={tr.painelLancTitulo}
+          sujo={!!(String(form.valor).trim() || form.desc.trim() || form.sub)}
+          bloqueado={dialogSub}
+          onFechar={aoFecharPainel}
+          fecharRef={fecharPainelRef}
+          focoInicialId="lanc-valor"
+          t={tr}
+        >
+          <div className="painel-form">
+            <div className="seg">
+              {[["despesa", tr.despesa, "ph ph-arrow-down-left"], ["receita", tr.receita, "ph ph-arrow-up-right"]].map(([tp, l, ic]) => (
+                <button key={tp} className="seg-opt" aria-pressed={form.tipo === tp} onClick={() => setForm(f => ({ ...f, tipo: tp }))}>
+                  <i className={ic} style={{ fontSize: 15 }} /> {l}
+                </button>
+              ))}
+            </div>
+            <div className="field">
+              <label htmlFor="lanc-valor">{tr.valor}</label>
+              <div className="valor-field" data-erro={!!valorMsgErro}>
+                <span>R$</span>
+                <input id="lanc-valor" type="text" inputMode="decimal" autoComplete="off" placeholder={lang === "en" ? "0.00" : "0,00"}
+                  value={form.valor} aria-invalid={!!valorMsgErro} aria-describedby="lanc-valor-msg"
+                  onChange={e => { setValorErr(""); setForm(f => ({ ...f, valor: e.target.value })); }} />
+              </div>
+              <p id="lanc-valor-msg" className={"valor-msg" + (valorMsgErro ? " valor-msg-erro" : "")} aria-live="polite">
+                {valorMsgErro || (valorDigitado && valorLido.ok ? `${tr.valorPrevia} ${fmt(valorLido.valor)}` : "")}
+              </p>
+            </div>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+              <div className="field">
+                <label>{tr.categoria}</label>
+                <select className="input" value={form.cat} onChange={e => mudarCategoria(e.target.value)}>
+                  {CATS.map(c => <option key={c.id} value={c.id}>{c.label}</option>)}
+                </select>
+              </div>
+              <div className="field">
+                <label>{tr.data}</label>
+                <input className="input" type="date" value={form.data} onChange={e => setForm(f => ({ ...f, data: e.target.value }))} />
+              </div>
+            </div>
+            {/* Classificação: obrigatório escolher um atalho OU escrever um detalhe.
+                A dica fica neutra; só vira erro (coral) depois de tentar salvar sem nenhum dos dois. */}
+            <fieldset className="lanc-classe" aria-describedby="lanc-classe-dica">
+              <legend className="lanc-classe-titulo">{tr.classeTitulo}</legend>
+              <p id="lanc-classe-dica" className={"lanc-classe-dica" + (classErr ? " lanc-classe-erro" : "")} aria-live="polite">
+                {classErr && <i className="ph ph-warning-circle" aria-hidden="true" />}{tr.classeDica}
+              </p>
+              <span id="lanc-atalho-rotulo" className="lanc-classe-rotulo">{tr.atalhosLabel}</span>
+              <div className="chips" role="group" aria-labelledby="lanc-atalho-rotulo">
+                {atalhosCat.map(a => (
+                  <span key={a.id} className="chip-grupo" data-ativo={form.sub === a.nome}>
+                    <button type="button" className="chip" aria-pressed={form.sub === a.nome} onClick={() => escolherAtalho(a.nome)}>{a.nome}</button>
+                    <button type="button" className="chip-x" title={tr.excluirAtalho} aria-label={tr.excluirAtalho + ": " + a.nome} onClick={() => excluirAtalho(a)}>
+                      <i className="ph ph-x" />
+                    </button>
+                  </span>
+                ))}
+                {/* sem atalhos na categoria: botão em destaque convidando a criar o primeiro (não é obrigatório) */}
+                <button type="button" className={"chip chip-novo" + (atalhosCat.length === 0 ? " chip-primeiro" : "")}
+                  onClick={() => { setSubTxt(""); setSubErr(""); setDialogSub(true); }}>
+                  <i className="ph ph-plus" /> {atalhosCat.length === 0 ? tr.primeiroAtalho : tr.novoAtalho}
+                </button>
+              </div>
+              <div className="lanc-classe-ou" aria-hidden="true"><div /><span>{tr.ou}</span><div /></div>
+              <label htmlFor="lanc-detalhe" className="lanc-classe-rotulo">{tr.detalheLabel}</label>
+              <input id="lanc-detalhe" className="input" placeholder={tr.detalheExemplo} value={form.desc} maxLength={120}
+                aria-invalid={classErr} aria-describedby="lanc-classe-dica"
+                onChange={e => { setLancErr(""); setForm(f => ({ ...f, desc: e.target.value })); }} />
+            </fieldset>
+            {lancErr && <p style={{ margin: 0, fontSize: 13, color: "var(--color-negative)" }}>{lancErr}</p>}
+            <div style={{ display: "flex", gap: 10, marginTop: 4 }}>
+              <button type="button" className="btn btn-primary" style={{ flex: 1, padding: 11 }} disabled={saving} onClick={addTx}>
+                {saving ? tr.salvando : tr.salvar}
+              </button>
+              <button type="button" className="btn btn-secondary" style={{ padding: "11px 18px" }} onClick={() => fecharPainelRef.current && fecharPainelRef.current()}>{tr.cancelar}</button>
+            </div>
+          </div>
+        </PainelLancamento>
+      )}
+
+      {/* celular: botão flutuante "+" no lugar do "Novo lançamento" do topo */}
+      {!painel && (
+        <button ref={fabRef} type="button" className="fab-novo" onClick={abrirPainel}
+          aria-label={tr.novoLancamentoBtn} title={tr.novoLancamentoBtn} aria-haspopup="dialog">
+          <i className="ph ph-plus" aria-hidden="true" />
+        </button>
+      )}
+
+      {/* confirmação curta depois de salvar */}
+      <div className="aviso-flutuante" role="status" aria-live="polite" data-visivel={!!aviso}>
+        {aviso && <><i className="ph ph-check-circle" aria-hidden="true" /> {aviso}</>}
+      </div>
 
       {confirmDel && (
         <div className="dialog-backdrop" onClick={() => setConfirmDel(null)}>
