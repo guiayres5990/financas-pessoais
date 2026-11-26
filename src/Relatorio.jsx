@@ -260,7 +260,7 @@ export default function Relatorio({ txs, userEmail, privado, t = {} }) {
 
   return (
     <div style={{ display: "grid", gridTemplateColumns: "minmax(0, 1fr)", gap: 16, maxWidth: 820 }}>
-      <div className="card" style={{ display: "grid", gap: 16 }}>
+      <div className="card card-hover card-hover-fixo" style={{ display: "grid", gap: 16 }}>
         <p className="card-title" style={{ margin: 0 }}>{t.periodoRelatorio || "Período do relatório"}</p>
         <div className="chips">
           {CICLOS.map(d => (
@@ -301,7 +301,7 @@ export default function Relatorio({ txs, userEmail, privado, t = {} }) {
               [t.despesas || "Despesas", m(despesas)],
               [t.saldo || "Saldo", m(saldo)]
             ].map(([l, v]) => (
-              <div key={l} style={{ padding: "12px 14px", borderRadius: "var(--radius-md)", background: "var(--color-neutral-900)" }}>
+              <div key={l} className="card-hover card-hover-fixo" style={{ padding: "12px 14px", borderRadius: "var(--radius-md)", background: "var(--color-neutral-900)" }}>
                 <p style={{ margin: 0, fontSize: 10, letterSpacing: "0.1em", textTransform: "uppercase", color: "var(--color-neutral-500)" }}>{l}</p>
                 <p style={{ margin: "4px 0 0", fontSize: 16, fontFamily: "var(--font-heading)" }}>{v}</p>
               </div>

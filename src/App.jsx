@@ -476,7 +476,7 @@ export default function App() {
 
         {/* direita: formulário */}
         <main className="auth-form">
-          <div className="auth-cartao">
+          <div className="auth-cartao card-hover card-hover-fixo">
             {authMode === "reset" ? (
               <>
                 <button type="button" className="btn btn-ghost auth-link" onClick={() => { setAuthMode("login"); setAuthErr(""); setResetSent(false); }}>
@@ -619,7 +619,7 @@ export default function App() {
                   [tr.despesas, money(despesas), "var(--color-negative)", `${txMes.filter(tx => tx.tipo === "despesa").length} ${tr.lancamentos}`],
                   [tr.saldo, money(saldo), saldo >= 0 ? "var(--color-accent-200)" : "var(--color-negative)", saldo >= 0 ? tr.sobrandoMes : tr.acimaReceita],
                 ].map(([l, v, cor, nota]) => (
-                  <div key={l} className="kpi">
+                  <div key={l} className="kpi card-hover card-hover-fixo">
                     <div className="line" style={{ background: `linear-gradient(to right, transparent, ${cor} 28px, ${cor} calc(100% - 28px), transparent)` }} />
                     <p className="kicker">{l}</p>
                     <p className="value" style={{ color: cor }}>{v}</p>
@@ -629,7 +629,7 @@ export default function App() {
               </div>
 
               <div className="dash-row">
-                <div className="card">
+                <div className="card card-hover card-hover-fixo">
                   <p className="card-title">{tr.despesasPorCategoria}</p>
                   {porCat.length === 0 ? <p className="empty">{tr.nenhuma}</p> : (
                     <div style={{ display: "flex", gap: 24, alignItems: "center", flexWrap: "wrap" }}>
@@ -659,7 +659,7 @@ export default function App() {
                   )}
                 </div>
 
-                <div className="card" style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+                <div className="card card-hover card-hover-fixo" style={{ display: "flex", flexDirection: "column", gap: 16 }}>
                   <p className="card-title" style={{ margin: 0 }}>{tr.projecao}</p>
                   <div>
                     <p style={{ margin: 0, fontSize: 30, fontFamily: "var(--font-heading)", color: "var(--color-negative)" }}>{money(projecao)}</p>

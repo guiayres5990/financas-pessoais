@@ -34,7 +34,7 @@ const LGPD = [
   { icone: "ph-identification-card", t: "lgpd4" }, // seção 2
 ];
 
-function LangPicker({ lang, setLang, paraCima = false }) {
+function LangPicker({ lang, setLang }) {
   const [open, setOpen] = useState(false);
   const caixa = useRef(null);
   const atual = LANGS.find(l => l.code === lang) || LANGS[0];
@@ -51,10 +51,10 @@ function LangPicker({ lang, setLang, paraCima = false }) {
       <button type="button" className="btn btn-secondary lp-toque" style={{ gap: 6 }} aria-haspopup="listbox" aria-expanded={open} onClick={() => setOpen(o => !o)}>
         <span style={{ fontSize: 16 }}>{atual.flag}</span>
         <span>{atual.label}</span>
-        <i className={paraCima ? "ph ph-caret-up" : "ph ph-caret-down"} style={{ fontSize: 12 }} />
+        <i className="ph ph-caret-down" style={{ fontSize: 12 }} />
       </button>
       {open && (
-        <div className="lp-idiomas" style={paraCima ? { bottom: "calc(100% + 6px)" } : { top: "calc(100% + 6px)" }}>
+        <div className="lp-idiomas" style={{ top: "calc(100% + 6px)" }}>
           {LANGS.map(l => (
             <button type="button" key={l.code} aria-pressed={l.code === lang} onClick={() => { setLang(l.code); setOpen(false); }}>
               <span style={{ fontSize: 18 }}>{l.flag}</span>
@@ -78,12 +78,6 @@ function rolarPara(id) {
 
 export default function Landing({ onEntrar, onCriarConta, dark, onToggleTheme, lang, setLang, t }) {
   const total = CATS_DEMO.reduce((s, c) => s + c.valor, 0);
-  const botaoTema = (
-    <button type="button" className="btn btn-icon btn-secondary lp-toque-icone" onClick={onToggleTheme}
-      title={t.alternarTema} aria-label={t.alternarTema}>
-      <i className={dark ? "ph ph-sun" : "ph ph-moon"} style={{ fontSize: 18 }} />
-    </button>
-  );
 
   return (
     <div className="lp">
@@ -96,7 +90,10 @@ export default function Landing({ onEntrar, onCriarConta, dark, onToggleTheme, l
           <a href="#recursos" onClick={rolarPara("recursos")}>{t.navRecursos}</a>
           <a href="#como-funciona" onClick={rolarPara("como-funciona")}>{t.relatorio}</a>
           <LangPicker lang={lang} setLang={setLang} />
-          {botaoTema}
+          <button type="button" className="btn btn-icon btn-secondary lp-toque-icone" onClick={onToggleTheme}
+            title={t.alternarTema} aria-label={t.alternarTema}>
+            <i className={dark ? "ph ph-sun" : "ph ph-moon"} style={{ fontSize: 18 }} />
+          </button>
           <button type="button" className="btn btn-secondary lp-toque" onClick={onEntrar}>{t.entrar}</button>
           <button type="button" className="btn btn-primary lp-toque" onClick={() => onCriarConta()}>{t.criarContaGratis}</button>
         </div>
@@ -114,7 +111,7 @@ export default function Landing({ onEntrar, onCriarConta, dark, onToggleTheme, l
           <p className="lp-nota">{t.dadosSeguros}</p>
         </div>
 
-        <div className="card-lg" style={{ display: "grid", gap: 16 }} aria-hidden="true">
+        <div className="card-lg card-hover" style={{ display: "grid", gap: 16 }} aria-hidden="true">
           <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", gap: 12 }}>
             <div>
               <p className="kicker">{t.saldoMes}</p>
@@ -148,7 +145,7 @@ export default function Landing({ onEntrar, onCriarConta, dark, onToggleTheme, l
         <h2 id="lp-como" className="lp-titulo">{t.heroTitle}</h2>
         <ol className="lp-passos">
           {PASSOS.map((p, i) => (
-            <li key={p.t} className="lp-passo">
+            <li key={p.t} className="lp-passo card-hover">
               <div className="lp-passo-topo">
                 <span className="lp-num" aria-hidden="true">{i + 1}</span>
                 <i className={"ph " + p.icone + " lp-icone"} aria-hidden="true" />
@@ -166,7 +163,7 @@ export default function Landing({ onEntrar, onCriarConta, dark, onToggleTheme, l
         <h2 id="lp-recursos" className="lp-titulo">{t.recursosSub}</h2>
         <ul className="lp-recursos">
           {RECURSOS.map(r => (
-            <li key={r.t} className="lp-recurso">
+            <li key={r.t} className="lp-recurso card-hover">
               <span className="lp-recurso-icone" aria-hidden="true"><i className={"ph " + r.icone} /></span>
               <div>
                 <h3>{t[r.t]}</h3>
@@ -179,7 +176,7 @@ export default function Landing({ onEntrar, onCriarConta, dark, onToggleTheme, l
 
       {/* d) Seus dados, protegidos (LGPD) */}
       <section className="lp-bloco" id="dados" aria-labelledby="lp-dados">
-        <div className="lp-lgpd">
+        <div className="lp-lgpd card-hover">
           <div>
             <p className="kicker">LGPD</p>
             <h2 id="lp-dados" className="lp-titulo">{t.lgpdTitulo}</h2>
@@ -213,10 +210,6 @@ export default function Landing({ onEntrar, onCriarConta, dark, onToggleTheme, l
         <div className="lp-rodape-inner">
           <Logo variant="horizontal" className="logo-rodape" />
           <a href="#/privacidade" className="link-destaque link-alvo">{t.privLink}</a>
-          <div className="lp-rodape-acoes">
-            <LangPicker lang={lang} setLang={setLang} paraCima />
-            {botaoTema}
-          </div>
         </div>
         <p className="lp-rodape-nota">{t.footer}</p>
       </footer>

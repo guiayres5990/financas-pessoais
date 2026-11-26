@@ -62,6 +62,12 @@
   --shadow-sm: 0 0 0 1px #2F251E;
   --shadow-md: 0 0 0 1px #41372F, 0 6px 18px rgba(0,0,0,0.5);
   --shadow-lg: 0 0 0 1px #5E5246, 0 16px 40px rgba(0,0,0,0.6);
+
+  /* cartões (.card-hover): no escuro a sombra preta quase some sobre o fundo café,
+     então o hover também clareia a borda com o acento bege em baixa opacidade */
+  --shadow-card: 0 0 0 1px #2F251E, 0 1px 3px rgba(0,0,0,0.35);
+  --shadow-card-hover: 0 0 0 1px color-mix(in srgb, #D9C7A3 30%, transparent), 0 8px 24px rgba(0,0,0,0.38), 0 20px 48px rgba(0,0,0,0.48);
+  --card-hover-lift: -4px;
 }
 
 /* Tema claro — fundo creme, texto café, bege profundo para contraste. */
@@ -107,6 +113,9 @@
   --shadow-sm: 0 0 0 1px #E0D6C6;
   --shadow-md: 0 0 0 1px #E0D6C6, 0 6px 18px rgba(31,24,18,0.08);
   --shadow-lg: 0 0 0 1px #C9BCA8, 0 16px 40px rgba(31,24,18,0.14);
+
+  --shadow-card: 0 0 0 1px #E0D6C6, 0 1px 3px rgba(31,24,18,0.08);
+  --shadow-card-hover: 0 0 0 1px #C9BCA8, 0 8px 24px rgba(31,24,18,0.10), 0 20px 48px rgba(31,24,18,0.14);
 }
 
 *, *::before, *::after { box-sizing: border-box; }
@@ -305,10 +314,10 @@ img { display: block; max-width: 100%; }
 .logo-cta { height: 180px; }
 .lp-cta-frase { margin: 0; max-width: 18ch; font-size: 40px; }
 .lp-rodape { margin-top: 112px; border-top: 1px solid var(--color-divider); }
-.lp-rodape-inner { max-width: 1140px; margin: 0 auto; padding: 28px 32px 8px; display: flex; align-items: center; flex-wrap: wrap; gap: 24px; }
+/* rodapé só com o essencial: logo à esquerda, Política à direita, frase embaixo (idioma e tema ficam no topo) */
+.lp-rodape-inner { max-width: 1140px; margin: 0 auto; padding: 28px 32px 8px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px 24px; }
 .lp-rodape .link-destaque { font-size: 15px; }
 .logo-rodape { height: 28px; }
-.lp-rodape-acoes { margin-left: auto; display: flex; align-items: center; gap: 10px; }
 .lp-rodape-nota { max-width: 1140px; margin: 0 auto; padding: 0 32px 40px; font-size: 13px; color: var(--color-neutral-500); }
 
 /* ── auth ─────────────────────────────────────────────── */
@@ -323,7 +332,7 @@ img { display: block; max-width: 100%; }
 .logo-auth { height: 240px; max-width: 100%; }
 .auth-frase { margin: 0; font-size: 34px; line-height: 1.15; color: var(--color-text); }
 .auth-form { display: grid; place-items: center; padding: 112px 40px 56px; }
-.auth-cartao { width: 100%; max-width: 420px; }
+.auth-cartao { width: 100%; max-width: 460px; padding: 32px; border-radius: var(--radius-lg); background: var(--color-surface); }
 .auth-cartao h3 { font-size: 30px; }
 .auth-cartao .field > label { margin-bottom: 6px; font-size: 14px; color: var(--color-neutral-300); }
 .auth-cartao .input { min-height: 48px; padding: 10px 14px; font-size: 16px; }
@@ -468,6 +477,23 @@ img { display: block; max-width: 100%; }
 .chip-x:hover { color: var(--color-negative); }
 .sub-tag { margin-left: 8px; padding: 1px 8px; vertical-align: 1px; font-size: 10px; background: var(--color-neutral-900); color: var(--color-neutral-400); white-space: nowrap; }
 
+/* ── cartões com elevação ─────────────────────────────── */
+/* .card-hover: sombra sutil em repouso; no hover/foco a sombra cresce e o cartão sobe 4px.
+   .card-hover-fixo: só a sombra, sem subir (cartões que não são clicáveis no app e o login).
+   Não usar em tabelas, linhas, campos, gráficos, modais, menus, barra lateral ou contêineres de página. */
+.card-hover { box-shadow: var(--shadow-card); transition: transform 200ms ease, box-shadow 200ms ease, border-color 200ms ease; }
+.card-lg.card-hover { box-shadow: var(--shadow-md); }
+a.card-hover, button.card-hover, .card-hover[role="button"] { cursor: pointer; }
+.card-hover:focus-visible, .card-hover:focus-within { box-shadow: var(--shadow-card-hover); transform: translateY(var(--card-hover-lift)); }
+@media (hover: hover) {
+  .card-hover:hover { box-shadow: var(--shadow-card-hover); transform: translateY(var(--card-hover-lift)); }
+}
+.card-hover.card-hover-fixo:hover, .card-hover.card-hover-fixo:focus-visible, .card-hover.card-hover-fixo:focus-within { transform: none; }
+@media (prefers-reduced-motion: reduce) {
+  .card-hover { transition: box-shadow 200ms ease, border-color 200ms ease; }
+  .card-hover:hover, .card-hover:focus-visible, .card-hover:focus-within { transform: none; }
+}
+
 @media (max-width: 900px) {
   .hero, .dash-row, .auth { grid-template-columns: 1fr; }
   .hero { padding: 48px 20px 64px; gap: 32px; }
@@ -487,8 +513,8 @@ img { display: block; max-width: 100%; }
   .lp-lgpd { gap: 24px; padding: 26px; }
   .logo-cta { height: 140px; }
   .lp-rodape { margin-top: 80px; }
-  .lp-rodape-inner { padding: 24px 20px 8px; gap: 16px; }
-  .lp-rodape-acoes { margin-left: 0; }
+  .lp-rodape-inner { padding: 24px 20px 8px; gap: 8px 16px; }
+  .auth-cartao { padding: 24px 20px; }
   .lp-rodape-nota { padding: 0 20px 32px; }
   .shell { grid-template-columns: minmax(0, 1fr); }
   .sidebar { flex-direction: row; align-items: center; gap: 14px; overflow: visible; box-shadow: 0 1px 0 var(--color-divider); }

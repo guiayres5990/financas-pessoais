@@ -45,6 +45,7 @@ Dono: Guizera (19, Administração na FGV, São Paulo). Ele está aprendendo: ex
 - Logo: `src/Logo.jsx` com as formas originais do Recraft (não redesenhar), variantes `horizontal`, `vertical` e `simbolo`. Regerar com `node scripts/gerar-logo.js <pasta com falc-horizontal.svg e falc-simbolo.svg>`.
 - Frase de efeito: "Veja seu dinheiro com olhos de falcão." (EN "See your money through a falcon's eyes." · ES "Mira tu dinero con ojos de halcón.").
 - Classes: `.btn-cheio` (ação principal), `.btn-grande` (48px), `.btn-voltar`, `.link-destaque` (links da Política, exceto no menu da conta), `.link-alvo` (toque de 44px), `.table-scroll`.
+- Sombra dos cartões: tokens `--shadow-card` (repouso), `--shadow-card-hover` (grande e difusa; no escuro com borda bege suave) e `--card-hover-lift` (-4px) no `theme.css`. Classe `.card-hover`: sobe e ganha sombra no hover/foco (Landing: passos, recursos, LGPD, cartão do hero). `.card-hover .card-hover-fixo`: só a sombra, sem subir (login, KPIs, categorias e projeção do dashboard, cartões do Relatório). Sem movimento com `prefers-reduced-motion` e sem hover em telas de toque. Não usar em tabelas, linhas, campos, gráficos, modais, menus, barra lateral nem contêineres de página.
 - Responsivo (1440, 768, 375), sem rolagem lateral, alvos de toque de 44px, contraste nos dois temas, foco de teclado visível.
 
 ## Decisões do dono (resumo)
@@ -53,6 +54,7 @@ Dono: Guizera (19, Administração na FGV, São Paulo). Ele está aprendendo: ex
 - CPF, telefone, nascimento e foto são opcionais. Foto sem Firebase Storage.
 - Sem simulador, sem atalhos prontos, sem seletor de idioma na Política, sem destaque no "Legal" do menu, sem nome pessoal na Política.
 - Textos da Landing sobre dados só repetem o que a Política afirma.
+- Rodapé da Landing só com o essencial: logo, "Política de Privacidade" e "FALC · feito no Brasil · privacidade primeiro". Idioma e tema ficam só no cabeçalho do topo.
 
 ## Comandos úteis
 
