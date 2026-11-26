@@ -47,4 +47,4 @@ Sempre respeitar a REGRA DE DADOS do `CLAUDE.md` (nada de gravar no Firebase).
 | Rodapé da Landing só com o essencial; sombra e elevação nos cartões (`.card-hover`) | `9090169` |
 | Arquivos sem uso removidos (`instalar.bat`, `atualizar.bat`, `Relatorio.jsx` da raiz, `src/App.css`) | `d9856f5` |
 | Cópia das regras v4 em `firestore.rules`; conferido que os campos do app batem com elas | `d9856f5` |
-| Bug do valor: "1.000,50" virava R$ 1,00. Agora `parseValor` lê o valor, mostra a prévia e recusa entradas inválidas (lançamentos antigos gravados errado não foram mexidos: o dono apaga e recria) | COMMIT_VALOR |
+| Bug do valor: "1.000,50" virava R$ 1,00. Agora `parseValor` lê o valor, mostra a prévia e recusa entradas inválidas (lançamentos antigos gravados errado não foram mexidos: o dono apaga e recria) | `c1b79f1` |
