@@ -1,7 +1,7 @@
 # FALC — estado do projeto
 
 Histórico detalhado do que foi feito e decidido. O resumo para toda sessão fica no `CLAUDE.md`; o que falta fica em `docs/pendencias.md`.
-Última revisão: 26/11/2026 (commit `c294d85`). Onde não há certeza, está escrito "a confirmar".
+Última revisão: 26/11/2026 (limpeza do repositório e cópia das regras v4). Onde não há certeza, está escrito "a confirmar".
 
 ---
 
@@ -33,14 +33,17 @@ Histórico detalhado do que foi feito e decidido. O resumo para toda sessão fic
 | `src/firebase.js` | Inicializa Firebase (`auth`, `db`). Não mexer na configuração |
 | `scripts/gerar-logo.js` | Regera `Logo.jsx` e os ícones a partir dos SVGs aprovados |
 | `vercel.json`, `vite.config.js` | Configuração de deploy e build |
-
-Arquivos sem uso que ainda estão no repositório: `Relatorio.jsx` (raiz, versão antiga), `atualizar.bat`, `instalar.bat` (apaga arquivos de `src/` se for executado), `src/App.css` (não é importado). Ver `docs/pendencias.md`.
+| `firestore.rules` | Cópia das regras publicadas no console (v4), só para consulta. Não publicar pelo terminal |
 
 ---
 
 ## 2. Firestore
 
-Cada usuário só deve acessar os próprios dados (por `uid`). As **regras de segurança foram publicadas pelo dono direto no console do Firebase**; o texto delas **não está no repositório** e não foi lido nas sessões — o conteúdo exato (o que validam e negam) está **a confirmar**. Pelo que o dono informou, existem regras para `transacoes`, `subcategorias` e `perfis` (versão "com perfis estendido"). Nunca publicar regras pelo terminal.
+Cada usuário só acessa os próprios dados (por `uid`). As **regras de segurança foram publicadas pelo dono direto no console do Firebase**, que é a fonte oficial; `firestore.rules` na raiz é uma cópia da versão publicada (v4), entregue pelo dono em 26/11/2026. Nunca publicar regras pelo terminal (`firebase deploy`).
+
+O que a v4 exige: `transacoes` e `subcategorias` só podem ser criadas, lidas e apagadas pelo dono (edição negada); `perfis/{uid}` pode ser criado e atualizado. Cada coleção aceita só os campos da tabela abaixo, com estes limites extras: `valor` > 0 e < 1 bilhão, `desc` 1 a 200, `cat` até 30, `data` com 10 caracteres, `criadoEm`/`atualizadoEm` como data; `foto` até 150.000 caracteres e só `data:image/jpeg|png|webp;base64`. Todo o resto do banco é fechado.
+
+Conferido no código em 26/11/2026: os campos e formatos que o app grava batem com a v4. Única diferença: o app não barra valor ≥ R$ 1 bilhão (o banco recusa e aparece "Não foi possível salvar").
 
 | Coleção | Campos que o app grava | Observações |
 |---|---|---|

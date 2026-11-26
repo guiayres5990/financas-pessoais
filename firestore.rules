@@ -1,0 +1,81 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Lançamentos: cada pessoa só enxerga e mexe nos próprios.
+    match /transacoes/{id} {
+      allow read, delete: if request.auth != null
+        && resource.data.uid == request.auth.uid;
+
+      allow create: if request.auth != null
+        && request.resource.data.uid == request.auth.uid
+        && request.resource.data.keys().hasOnly(['uid','tipo','valor','desc','cat','sub','data','criadoEm'])
+        && request.resource.data.keys().hasAll(['uid','tipo','valor','desc','cat','data','criadoEm'])
+        && request.resource.data.tipo in ['despesa','receita']
+        && request.resource.data.valor is number
+        && request.resource.data.valor > 0
+        && request.resource.data.valor < 1000000000
+        && request.resource.data.desc is string
+        && request.resource.data.desc.size() > 0
+        && request.resource.data.desc.size() <= 200
+        && request.resource.data.cat is string
+        && request.resource.data.cat.size() <= 30
+        && (!('sub' in request.resource.data)
+            || (request.resource.data.sub is string && request.resource.data.sub.size() <= 40))
+        && request.resource.data.data is string
+        && request.resource.data.data.size() == 10
+        && request.resource.data.criadoEm is timestamp;
+
+      allow update: if false;
+    }
+
+    // Subcategorias criadas pelo usuário (atalhos como "Mercado" ou "Uber").
+    match /subcategorias/{id} {
+      allow read, delete: if request.auth != null
+        && resource.data.uid == request.auth.uid;
+
+      allow create: if request.auth != null
+        && request.resource.data.uid == request.auth.uid
+        && request.resource.data.keys().hasOnly(['uid','cat','nome','criadoEm'])
+        && request.resource.data.keys().hasAll(['uid','cat','nome','criadoEm'])
+        && request.resource.data.cat is string
+        && request.resource.data.cat.size() <= 30
+        && request.resource.data.nome is string
+        && request.resource.data.nome.size() > 0
+        && request.resource.data.nome.size() <= 40
+        && request.resource.data.criadoEm is timestamp;
+
+      allow update: if false;
+    }
+
+    // Perfil: apelido e dados opcionais (um documento por usuário, id = uid).
+    match /perfis/{uid} {
+      allow read, delete: if request.auth != null
+        && request.auth.uid == uid;
+
+      allow create, update: if request.auth != null
+        && request.auth.uid == uid
+        && request.resource.data.keys().hasOnly(['apelido','atualizadoEm','cpf','nascimento','telefone','foto'])
+        && request.resource.data.keys().hasAll(['apelido','atualizadoEm'])
+        && request.resource.data.apelido is string
+        && request.resource.data.apelido.size() > 0
+        && request.resource.data.apelido.size() <= 30
+        && request.resource.data.atualizadoEm is timestamp
+        && (!('cpf' in request.resource.data)
+            || (request.resource.data.cpf is string && request.resource.data.cpf.matches('^[0-9]{11}$')))
+        && (!('nascimento' in request.resource.data)
+            || (request.resource.data.nascimento is string && request.resource.data.nascimento.matches('^[0-9]{4}-[0-9]{2}-[0-9]{2}$')))
+        && (!('telefone' in request.resource.data)
+            || (request.resource.data.telefone is string && request.resource.data.telefone.matches('^[0-9]{10,13}$')))
+        && (!('foto' in request.resource.data)
+            || (request.resource.data.foto is string
+                && request.resource.data.foto.size() <= 150000
+                && request.resource.data.foto.matches('^data:image/(jpeg|png|webp);base64,.*')));
+    }
+
+    // Todo o resto fica fechado.
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

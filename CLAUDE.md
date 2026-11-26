@@ -16,7 +16,7 @@ Dono: Guizera (19, Administração na FGV, São Paulo). Ele está aprendendo: ex
 
 - NUNCA criar, alterar nem apagar dados no Firebase (Firestore ou Authentication): nada de lançamentos, atalhos, perfis ou contas de teste, seeds, migrações ou chamadas ao banco pelo terminal.
 - NUNCA testar gravações logado na conta real do dono. Teste só visual, build e revisão de código; para o que grava no banco, passe ao dono o passo a passo para ele testar numa conta de teste dele.
-- NUNCA publicar regras do Firestore nem mexer em credenciais/config do Firebase (as regras já foram publicadas pelo dono no console).
+- NUNCA publicar regras do Firestore nem mexer em credenciais/config do Firebase (as regras já foram publicadas pelo dono no console). `firestore.rules` na raiz é só uma cópia da versão publicada (v4), para consulta: a fonte oficial é o console. Nunca rodar `firebase deploy`.
 - Se algo exigir gravar dados para funcionar, PARE e pergunte.
 - Para conferir telas logadas: config temporária do Vite trocando `./firebase`, `firebase/auth` e `firebase/firestore` por mocks em memória; apagar no fim e nunca commitar.
 
@@ -74,7 +74,7 @@ Dono: Guizera (19, Administração na FGV, São Paulo). Ele está aprendendo: ex
 
 ## Arquivos importantes
 
-- `src/App.jsx` (telas, login, perfil, CSV, exclusão de conta), `src/Landing.jsx`, `src/Privacidade.jsx`, `src/Perfil.jsx` + `src/perfilUtil.js` + `src/Avatar.jsx`, `src/MenuConta.jsx`, `src/Relatorio.jsx`, `src/Logo.jsx`, `src/i18n.js`, `src/theme.css`, `src/firebase.js` (não mexer), `index.html`, `scripts/gerar-logo.js`.
+- `src/App.jsx` (telas, login, perfil, CSV, exclusão de conta), `src/Landing.jsx`, `src/Privacidade.jsx`, `src/Perfil.jsx` + `src/perfilUtil.js` + `src/Avatar.jsx`, `src/MenuConta.jsx`, `src/Relatorio.jsx`, `src/Logo.jsx`, `src/i18n.js`, `src/theme.css`, `src/firebase.js` (não mexer), `firestore.rules` (cópia das regras, só leitura), `index.html`, `scripts/gerar-logo.js`.
 
 ---
 
