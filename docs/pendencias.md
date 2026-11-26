@@ -21,7 +21,7 @@ Sempre respeitar a REGRA DE DADOS do `CLAUDE.md` (nada de gravar no Firebase).
 
 - **Firebase App Check** (proteção extra do banco).
 - **Brecha no aceite da Política:** o botão Google na aba "Entrar" pode criar conta nova sem marcar a caixa de aceite.
-- **Textos que ainda estão só em português** (deveriam existir em PT/EN/ES):
+- **Textos que ainda estão só em português** (deveriam existir em PT/EN):
   - Mensagens de erro do login (`handleAuth` em `src/App.jsx`: "E-mail não encontrado.", "Erro ao autenticar." etc.).
   - `title="Tema"` do botão de tema na barra do app e o "Total" no centro do gráfico de rosca (`src/App.jsx`).
   - Relatório/PDF (`src/Relatorio.jsx`): "Dia N → N", "lanç.", "Nenhum lançamento no período.", e no PDF "RELATÓRIO FINANCEIRO" e os cabeçalhos da tabela ("DESCRIÇÃO" etc.).

@@ -16,7 +16,7 @@ import PageHeader from "./PageHeader";
 import PainelLancamento from "./PainelLancamento";
 import { MAX_SUB } from "./subcategorias";
 import { parseValor } from "./parseValor";
-import { T, LANGS } from "./i18n";
+import { T, LANGS, idiomaInicial, normalizarIdioma } from "./i18n";
 
 export const CATS_BASE = [
   { id: "moradia",     cor: "var(--cat-moradia)" },
@@ -31,12 +31,10 @@ export const CATS_BASE = [
 const MESES = {
   pt: ["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"],
   en: ["January","February","March","April","May","June","July","August","September","October","November","December"],
-  es: ["Enero","Febrero","Marzo","Abril","Mayo","Junio","Julio","Agosto","Septiembre","Octubre","Noviembre","Diciembre"],
 };
 const MES_CURTO = {
   pt: ["Jan","Fev","Mar","Abr","Mai","Jun","Jul","Ago","Set","Out","Nov","Dez"],
   en: ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"],
-  es: ["Ene","Feb","Mar","Abr","May","Jun","Jul","Ago","Sep","Oct","Nov","Dic"],
 };
 
 export const fmt = v => v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
@@ -78,7 +76,7 @@ function LangPicker({ lang, setLang }) {
 }
 
 export default function App() {
-  const [lang, setLangState] = useState(() => localStorage.getItem("fp_lang") || "pt");
+  const [lang, setLangState] = useState(idiomaInicial); // "es" salvo (idioma removido) vira "en"
   const [dark, setDark] = useState(() => localStorage.getItem("fp_theme") !== "light");
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -115,6 +113,16 @@ export default function App() {
   const fecharPainelRef = useRef(null);  // fecha com animação (usado pelo Cancelar)
   const painelFoiAberto = useRef(false);
   const avisoTimer = useRef(null);
+  const [barraAtiva, setBarraAtiva] = useState(null); // mês com tooltip aberto no gráfico "Últimos 6 meses"
+  // tocar/clicar fora do gráfico ou apertar Esc fecha o tooltip (nem todo celular dá foco ao botão)
+  useEffect(() => {
+    if (barraAtiva === null) return;
+    const fora = e => { if (!e.target.closest || !e.target.closest(".bars")) setBarraAtiva(null); };
+    const tecla = e => { if (e.key === "Escape") setBarraAtiva(null); };
+    document.addEventListener("pointerdown", fora);
+    document.addEventListener("keydown", tecla);
+    return () => { document.removeEventListener("pointerdown", fora); document.removeEventListener("keydown", tecla); };
+  }, [barraAtiva]);
   // o erro some assim que a pessoa escolhe um atalho ou digita um detalhe
   useEffect(() => { if (form.sub || form.desc.trim()) setClassErr(false); }, [form.sub, form.desc]);
   const [saving, setSaving] = useState(false);
@@ -144,8 +152,9 @@ export default function App() {
   ];
 
   function setLang(code) {
-    setLangState(code);
-    localStorage.setItem("fp_lang", code);
+    const idioma = normalizarIdioma(code) || "pt";
+    setLangState(idioma);
+    localStorage.setItem("fp_lang", idioma);
   }
 
   useEffect(() => {
@@ -263,13 +272,16 @@ export default function App() {
     const d = new Date(ano, mes - 5 + i, 1);
     const m = d.getMonth(), a = d.getFullYear();
     const dos = txs.filter(tx => { const td = new Date(tx.data + "T12:00:00"); return td.getMonth() === m && td.getFullYear() === a; });
-    return {
-      label: MES_CURTO[lang][m],
-      r: dos.filter(tx => tx.tipo === "receita").reduce((s, tx) => s + tx.valor, 0),
-      d: dos.filter(tx => tx.tipo === "despesa").reduce((s, tx) => s + tx.valor, 0),
-    };
+    const r = dos.filter(tx => tx.tipo === "receita").reduce((s, tx) => s + tx.valor, 0);
+    const dd = dos.filter(tx => tx.tipo === "despesa").reduce((s, tx) => s + tx.valor, 0);
+    return { label: MES_CURTO[lang][m], nome: `${MESES[lang][m]} ${a}`, m, a, r, d: dd, saldo: r - dd, vazio: dos.length === 0 };
   });
   const maxBar = Math.max(1, ...ultimos6.map(m => Math.max(m.r, m.d)));
+  // Mês em destaque: o mês atual (de hoje) se estiver no gráfico; senão, o mês escolhido (última coluna)
+  const hojeG = new Date();
+  const idxAtual = (() => { const i = ultimos6.findIndex(x => x.m === hojeG.getMonth() && x.a === hojeG.getFullYear()); return i >= 0 ? i : ultimos6.length - 1; })();
+  // valores do tooltip no formato do idioma (respeita "Ocultar valores")
+  const moedaIdioma = v => (privado ? "R$ ••••" : v.toLocaleString(lang === "en" ? "en-US" : "pt-BR", { style: "currency", currency: "BRL" }));
 
   async function handleAuth() {
     if (authMode === "cadastro" && !aceitePriv) { setAuthErr(tr.privPrecisaAceitar); return; }
@@ -753,16 +765,34 @@ export default function App() {
                     <span><i style={{ background: "var(--color-negative-bar)" }} />{tr.despesas}</span>
                   </div>
                 </div>
-                <div className="bars" style={{ overflow: "hidden" }}>
-                  {ultimos6.map((m, i) => (
-                    <div className="col" key={i}>
-                      <div className="pair">
-                        <div style={{ background: "var(--color-accent-500)", height: (m.r / maxBar) * 100 + "%" }} />
-                        <div style={{ background: "var(--color-negative-bar)", height: (m.d / maxBar) * 100 + "%" }} />
+                {/* cada mês é um botão: mouse, toque ou Tab mostram o tooltip com receitas, despesas e saldo */}
+                <div className="bars" role="list" onPointerLeave={e => e.pointerType === "mouse" && setBarraAtiva(null)}>
+                  {ultimos6.map((m, i) => {
+                    const resumo = `${m.nome}: ${tr.receitas} ${moedaIdioma(m.r)}, ${tr.despesas} ${moedaIdioma(m.d)}, ${tr.saldo} ${moedaIdioma(m.saldo)}`;
+                    return (
+                      <div role="listitem" key={i} className="col" data-atual={i === idxAtual} data-vazio={m.vazio}>
+                        <button type="button" className="col-botao" aria-label={resumo} aria-current={i === idxAtual ? "date" : undefined}
+                          onPointerEnter={e => e.pointerType === "mouse" && setBarraAtiva(i)}
+                          onFocus={() => setBarraAtiva(i)} onBlur={() => setBarraAtiva(null)}
+                          // clique/toque sempre abre (tocar fora fecha, pelo blur)
+                          onClick={() => setBarraAtiva(i)}>
+                          <span className="pair" aria-hidden="true">
+                            <span style={{ background: "var(--color-accent-500)", height: (m.r / maxBar) * 100 + "%" }} />
+                            <span style={{ background: "var(--color-negative-bar)", height: (m.d / maxBar) * 100 + "%" }} />
+                          </span>
+                          <span className="label" aria-hidden="true">{m.label}</span>
+                        </button>
+                        {barraAtiva === i && (
+                          <div className={"bars-tip" + (i < 3 ? " bars-tip-esq" : " bars-tip-dir")} aria-hidden="true">
+                            <p className="bars-tip-mes">{m.nome}</p>
+                            <p><i style={{ background: "var(--color-accent-500)" }} />{tr.receitas}<b>{moedaIdioma(m.r)}</b></p>
+                            <p><i style={{ background: "var(--color-negative-bar)" }} />{tr.despesas}<b>{moedaIdioma(m.d)}</b></p>
+                            <p className="bars-tip-saldo">{tr.saldo}<b className={m.saldo < 0 ? "neg-saldo" : ""}>{moedaIdioma(m.saldo)}</b></p>
+                          </div>
+                        )}
                       </div>
-                      <span className="label">{m.label}</span>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               </div>
             </div>

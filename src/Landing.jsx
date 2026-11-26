@@ -4,10 +4,10 @@ import Logo from "./Logo";
 
 // Cartão de exemplo do hero (valores fictícios, só ilustração)
 const CATS_DEMO = [
-  { label: { pt: "Moradia", en: "Housing", es: "Vivienda" }, valor: 1500, cor: "var(--cat-moradia)" },
-  { label: { pt: "Alimentação", en: "Food", es: "Alimentación" }, valor: 1240, cor: "var(--cat-alimentacao)" },
-  { label: { pt: "Transporte", en: "Transport", es: "Transporte" }, valor: 480, cor: "var(--cat-transporte)" },
-  { label: { pt: "Lazer", en: "Leisure", es: "Ocio" }, valor: 390.5, cor: "var(--cat-lazer)" },
+  { label: { pt: "Moradia", en: "Housing" }, valor: 1500, cor: "var(--cat-moradia)" },
+  { label: { pt: "Alimentação", en: "Food" }, valor: 1240, cor: "var(--cat-alimentacao)" },
+  { label: { pt: "Transporte", en: "Transport" }, valor: 480, cor: "var(--cat-transporte)" },
+  { label: { pt: "Lazer", en: "Leisure" }, valor: 390.5, cor: "var(--cat-lazer)" },
 ];
 const fmt = v => v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 

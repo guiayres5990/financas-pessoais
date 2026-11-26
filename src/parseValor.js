@@ -4,7 +4,7 @@
 //
 // Regras:
 // - Ignora espaços, "R$" e "$".
-// - Português/espanhol: ponto = milhar, vírgula = decimal. Inglês: o inverso.
+// - Português: ponto = milhar, vírgula = decimal. Inglês: o inverso.
 // - Com os dois separadores, o ÚLTIMO é o decimal (em qualquer idioma).
 // - Com um só tipo de separador:
 //   · se for o decimal do idioma, é decimal (aparecendo mais de uma vez, é erro);

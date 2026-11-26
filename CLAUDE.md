@@ -10,7 +10,7 @@ Dono: Guizera (19, Administração na FGV, São Paulo). Ele está aprendendo: ex
 
 - React 18 + Vite 4; Firebase Auth (e-mail/senha + Google por `signInWithRedirect`); Firestore (projeto `financas-pessoais-14ce7`); jsPDF (PDF desenhado direto); Phosphor Icons (regular + bold); Google Fonts.
 - Coleções: `transacoes`, `subcategorias`, `perfis/{uid}` (campos e regras em `docs/estado-do-projeto.md`). Cada usuário só acessa os próprios dados.
-- Textos em PT / EN / ES em `src/i18n.js`. **Todo texto novo nos 3 idiomas.** Idioma em `fp_lang` (padrão PT), tema em `fp_theme`.
+- App só em **português e inglês** (espanhol removido em nov/2026). Textos em `src/i18n.js`; **todo texto novo nos 2 idiomas**. Idioma em `fp_lang` lido por `idiomaInicial()`/`normalizarIdioma()` (padrão PT; "es" salvo ou navegador em espanhol → EN), tema em `fp_theme`.
 
 ## REGRA DE DADOS (vale para tudo)
 
@@ -43,7 +43,7 @@ Dono: Guizera (19, Administração na FGV, São Paulo). Ele está aprendendo: ex
 
 - Fontes: **Fraunces** nos títulos, **DM Sans** no texto. Fraunces carregada com `opsz, wght, SOFT, WONK`; todos os títulos em Fraunces usam peso 500, `font-optical-sizing: none`, `font-variation-settings: "opsz" 36, "SOFT" 0, "WONK" 0`, sem ligaduras. Não trocar a fonte por conta própria.
 - Logo: `src/Logo.jsx` com as formas originais do Recraft (não redesenhar), variantes `horizontal`, `vertical` e `simbolo`. Regerar com `node scripts/gerar-logo.js <pasta com falc-horizontal.svg e falc-simbolo.svg>`.
-- Frase de efeito: "Veja seu dinheiro com olhos de falcão." (EN "See your money through a falcon's eyes." · ES "Mira tu dinero con ojos de halcón.").
+- Frase de efeito: "Veja seu dinheiro com olhos de falcão." (EN "See your money through a falcon's eyes.").
 - Classes: `.btn-cheio` (ação principal), `.btn-grande` (48px), `.btn-voltar`, `.link-destaque` (links da Política, exceto no menu da conta), `.link-alvo` (toque de 44px), `.table-scroll`.
 - Sombra dos cartões: tokens `--shadow-card` (repouso), `--shadow-card-hover` (grande e difusa; no escuro com borda bege suave) e `--card-hover-lift` (-4px) no `theme.css`. Classe `.card-hover`: sobe e ganha sombra no hover/foco (Landing: passos, recursos, LGPD, cartão do hero). `.card-hover .card-hover-fixo`: só a sombra, sem subir (login, KPIs, categorias e projeção do dashboard, cartões do Relatório). Sem movimento com `prefers-reduced-motion` e sem hover em telas de toque. Não usar em tabelas, linhas, campos, gráficos, modais, menus, barra lateral nem contêineres de página.
 - Cabeçalho das páginas do app: sempre `src/PageHeader.jsx` (título em Fraunces `clamp(28px, …, 36px)` + subtítulo opcional em DM Sans 16px, ações à direita como o seletor de mês). Fica dentro de `.content`, na borda dos cartões, com 24px (20px no celular) até o 1º cartão. A barra do topo só tem controles globais (ocultar valores, idioma, tema, novo lançamento).
@@ -54,6 +54,7 @@ Dono: Guizera (19, Administração na FGV, São Paulo). Ele está aprendendo: ex
 - Menores de 18 podem usar o app (menores de 12 com conta criada e acompanhada por um responsável).
 - CPF, telefone, nascimento e foto são opcionais. Foto sem Firebase Storage.
 - Novo lançamento é um **painel** (`src/PainelLancamento.jsx`; TESTE, para desfazer: `git revert` do commit "Painel de novo lançamento (teste)" (achar com `git log --oneline --grep "Painel de novo"`)): botão "Novo lançamento" do topo (no celular, botão flutuante "+" de 56px) abre lateral de 440px à direita (celular: tela cheia de baixo), sobre qualquer página. Não existe mais a aba/página Lançar; `#/lancar` vai para a Visão geral e abre o painel. Com algo preenchido, fundo/Esc/✕ perguntam "Descartar o lançamento?" dentro do painel (nunca `window.confirm`); Cancelar fecha direto. Salvou: fecha e mostra "Lançamento salvo". Sem a dica "use o mesmo texto para gastos recorrentes".
+- Gráfico "Últimos 6 meses": cada mês é um botão com tooltip (receitas, despesas e saldo no formato do idioma) por mouse, toque ou Tab; mês atual em destaque (rótulo em negrito, barras cheias; anteriores com 50%); mês vazio só com traço neutro.
 - Lançamento: obrigatório escolher um atalho OU escrever um detalhe. Bloco "Do que foi esse lançamento?" com dica neutra; erro em coral só depois de tentar salvar (some ao preencher); sem atalhos na categoria, botão "Crie seu primeiro atalho" em destaque.
 - Sem simulador, sem atalhos prontos, sem seletor de idioma na Política, sem destaque no "Legal" do menu, sem nome pessoal na Política.
 - Textos da Landing sobre dados só repetem o que a Política afirma.
