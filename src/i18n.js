@@ -90,7 +90,6 @@ export const T = {
     novoLancamentoBtn: "Novo lançamento",
     // descrições de views
     dashDesc: "Como o mês está indo até aqui",
-    lancarDesc: "Menos de doze segundos",
     historicoDesc: "Tudo que você registrou no mês",
     relatorioDesc: "Escolha o período e exporte em PDF",
     // categorias
@@ -365,7 +364,6 @@ export const T = {
     mostrarValores: "Show values",
     novoLancamentoBtn: "New entry",
     dashDesc: "How the month is going so far",
-    lancarDesc: "Less than twelve seconds",
     historicoDesc: "Everything you recorded this month",
     relatorioDesc: "Choose the period and export as PDF",
     moradia: "Housing",
@@ -632,7 +630,6 @@ export const T = {
     mostrarValores: "Mostrar valores",
     novoLancamentoBtn: "Nuevo registro",
     dashDesc: "Cómo va el mes hasta ahora",
-    lancarDesc: "Menos de doce segundos",
     historicoDesc: "Todo lo que registraste este mes",
     relatorioDesc: "Elige el período y exporta en PDF",
     moradia: "Vivienda",

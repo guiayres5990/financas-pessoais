@@ -18,7 +18,7 @@ Dono: Guizera (19, Administração na FGV, São Paulo). Ele está aprendendo: ex
 - NUNCA testar gravações logado na conta real do dono. Teste só visual, build e revisão de código; para o que grava no banco, passe ao dono o passo a passo para ele testar numa conta de teste dele.
 - NUNCA publicar regras do Firestore nem mexer em credenciais/config do Firebase (as regras já foram publicadas pelo dono no console). `firestore.rules` na raiz é só uma cópia da versão publicada (v4), para consulta: a fonte oficial é o console. Nunca rodar `firebase deploy`.
 - Se algo exigir gravar dados para funcionar, PARE e pergunte.
-- Para conferir telas logadas: config temporária do Vite trocando `./firebase`, `firebase/auth` e `firebase/firestore` por mocks em memória; apagar no fim e nunca commitar.
+- Para conferir telas logadas: config temporária do Vite trocando `./firebase`, `firebase/auth` e `firebase/firestore` por mocks em memória; apagar no fim e nunca commitar. Apagar também `node_modules/.vite` (o Vite guarda os mocks no cache e reaproveita na próxima vez).
 
 ## Regras de manutenção deste arquivo
 
@@ -46,6 +46,7 @@ Dono: Guizera (19, Administração na FGV, São Paulo). Ele está aprendendo: ex
 - Frase de efeito: "Veja seu dinheiro com olhos de falcão." (EN "See your money through a falcon's eyes." · ES "Mira tu dinero con ojos de halcón.").
 - Classes: `.btn-cheio` (ação principal), `.btn-grande` (48px), `.btn-voltar`, `.link-destaque` (links da Política, exceto no menu da conta), `.link-alvo` (toque de 44px), `.table-scroll`.
 - Sombra dos cartões: tokens `--shadow-card` (repouso), `--shadow-card-hover` (grande e difusa; no escuro com borda bege suave) e `--card-hover-lift` (-4px) no `theme.css`. Classe `.card-hover`: sobe e ganha sombra no hover/foco (Landing: passos, recursos, LGPD, cartão do hero). `.card-hover .card-hover-fixo`: só a sombra, sem subir (login, KPIs, categorias e projeção do dashboard, cartões do Relatório). Sem movimento com `prefers-reduced-motion` e sem hover em telas de toque. Não usar em tabelas, linhas, campos, gráficos, modais, menus, barra lateral nem contêineres de página.
+- Cabeçalho das páginas do app: sempre `src/PageHeader.jsx` (título em Fraunces `clamp(28px, …, 36px)` + subtítulo opcional em DM Sans 16px, ações à direita como o seletor de mês). Fica dentro de `.content`, na borda dos cartões, com 24px (20px no celular) até o 1º cartão. A barra do topo só tem controles globais (ocultar valores, idioma, tema, novo lançamento). Lançar não tem subtítulo.
 - Responsivo (1440, 768, 375), sem rolagem lateral, alvos de toque de 44px, contraste nos dois temas, foco de teclado visível.
 
 ## Decisões do dono (resumo)
@@ -77,7 +78,7 @@ Dono: Guizera (19, Administração na FGV, São Paulo). Ele está aprendendo: ex
 
 ## Arquivos importantes
 
-- `src/App.jsx` (telas, login, perfil, CSV, exclusão de conta), `src/Landing.jsx`, `src/Privacidade.jsx`, `src/Perfil.jsx` + `src/perfilUtil.js` + `src/Avatar.jsx`, `src/MenuConta.jsx`, `src/Relatorio.jsx`, `src/Logo.jsx`, `src/i18n.js`, `src/theme.css`, `src/firebase.js` (não mexer), `firestore.rules` (cópia das regras, só leitura), `index.html`, `scripts/gerar-logo.js`.
+- `src/App.jsx` (telas, login, perfil, CSV, exclusão de conta), `src/Landing.jsx`, `src/Privacidade.jsx`, `src/Perfil.jsx` + `src/perfilUtil.js` + `src/Avatar.jsx`, `src/MenuConta.jsx`, `src/PageHeader.jsx`, `src/Relatorio.jsx`, `src/Logo.jsx`, `src/i18n.js`, `src/theme.css`, `src/firebase.js` (não mexer), `firestore.rules` (cópia das regras, só leitura), `index.html`, `scripts/gerar-logo.js`.
 
 ---
 

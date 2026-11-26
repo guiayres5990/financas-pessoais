@@ -12,6 +12,7 @@ import Privacidade from "./Privacidade";
 import Logo from "./Logo";
 import MenuConta from "./MenuConta";
 import Perfil from "./Perfil";
+import PageHeader from "./PageHeader";
 import { MAX_SUB } from "./subcategorias";
 import { parseValor } from "./parseValor";
 import { T, LANGS } from "./i18n";
@@ -128,7 +129,7 @@ export default function App() {
 
   const VIEWS = !tr ? [] : [
     ["dashboard", tr.dashboard, "ph ph-chart-donut",  tr.dashDesc],
-    ["lancar",    tr.lancar,    "ph ph-plus-circle",   tr.lancarDesc],
+    ["lancar",    tr.lancar,    "ph ph-plus-circle",   null], // Lançar: sem subtítulo
     ["historico", tr.historico, "ph ph-list-dashes",   tr.historicoDesc],
     ["relatorio", tr.relatorio, "ph ph-file-text",     tr.relatorioDesc],
   ];
@@ -599,18 +600,8 @@ export default function App() {
       </aside>
 
       <main style={{ minWidth: 0 }}>
-        <header className="topbar">
-          <div style={{ marginRight: "auto" }}>
-            <h4 style={{ margin: 0 }}>{vAtual[1]}</h4>
-            <p style={{ margin: "2px 0 0", fontSize: 12, color: "var(--color-neutral-600)" }}>{vAtual[3]}</p>
-          </div>
-          {view !== "relatorio" && view !== "perfil" && (
-            <div className="month-picker">
-              <button className="btn btn-icon btn-ghost" onClick={() => mudaMes(-1)}><i className="ph ph-caret-left" style={{ fontSize: 14 }} /></button>
-              <span>{MESES[lang][mes]} {ano}</span>
-              <button className="btn btn-icon btn-ghost" onClick={() => mudaMes(1)}><i className="ph ph-caret-right" style={{ fontSize: 14 }} /></button>
-            </div>
-          )}
+        {/* barra do topo: só os controles globais (iguais em todas as páginas, para não mudar de altura) */}
+        <div className="topbar">
           <button className="btn btn-secondary" style={{ gap: 8 }} onClick={() => setPrivado(p => !p)}>
             <i className={privado ? "ph ph-eye-closed" : "ph ph-eye"} style={{ fontSize: 16 }} />
             {privado ? tr.mostrarValores : tr.ocultarValores}
@@ -622,9 +613,18 @@ export default function App() {
           <button className="btn btn-primary" style={{ gap: 8 }} onClick={() => setView("lancar")}>
             <i className="ph ph-plus" style={{ fontSize: 15 }} /> {tr.novoLancamentoBtn}
           </button>
-        </header>
+        </div>
 
         <div className="content">
+          <PageHeader titulo={vAtual[1]} subtitulo={vAtual[3]}>
+            {view !== "relatorio" && view !== "perfil" && (
+              <div className="month-picker">
+                <button className="btn btn-icon btn-ghost" onClick={() => mudaMes(-1)}><i className="ph ph-caret-left" style={{ fontSize: 14 }} /></button>
+                <span>{MESES[lang][mes]} {ano}</span>
+                <button className="btn btn-icon btn-ghost" onClick={() => mudaMes(1)}><i className="ph ph-caret-right" style={{ fontSize: 14 }} /></button>
+              </div>
+            )}
+          </PageHeader>
           {view === "dashboard" && (
             <div style={{ display: "grid", gap: 16 }}>
               <div className="kpi-row">
