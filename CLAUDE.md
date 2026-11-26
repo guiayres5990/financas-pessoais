@@ -74,7 +74,7 @@ Cada usuário só acessa os próprios dados (por `uid`).
 
 - Use os tokens do `theme.css`, nunca cores fixas no JSX.
 - `src/Logo.jsx`: `variant="horizontal"`, `"vertical"` (falcão em cima, FALC embaixo, posição original do SVG) ou `"simbolo"`; tamanhos: barra lateral 30px, Landing/Política 36px, rodapé 28px, CTA vertical 180px (140 no celular), login vertical 240px (96 no celular); no celular a barra lateral usa o símbolo. Sem texto "FALC" solto ao lado. Regerar com `node scripts/gerar-logo.js <pasta com falc-horizontal.svg e falc-simbolo.svg>` (usa `sharp`).
-- SVG original do Recraft (vertical): `C:\projetos\logo-finalalc-vertical.svg.svg`; `falc-horizontal.svg` e `falc-simbolo.svg` aprovados ficam em `Downloads`.
+- SVG original do Recraft (vertical): `C:\projetos\logo-final\falc-vertical.svg.svg`; `falc-horizontal.svg` e `falc-simbolo.svg` aprovados ficam em `Downloads`.
 - Ícones: `public/falc-icone.svg` (favicon), `public/apple-touch-icon.png` (180x180).
 - Botões: `.btn-cheio` (ação principal, fundo acento), `.btn-grande` (48px), `.lp-toque` / `.link-alvo` (alvo de toque de 44px).
 - Links da Política usam `.link-destaque` (negrito + sublinhado; no claro, cor do texto com sublinhado marrom), mas NÃO dentro do menu da conta: lá o item "Legal" é igual aos outros itens (`.conta-item`).
