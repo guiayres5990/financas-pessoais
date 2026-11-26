@@ -105,7 +105,6 @@ export default function Landing({ onEntrar, onCriarConta, dark, onToggleTheme, l
       {/* a) Hero */}
       <section className="hero">
         <div>
-          <span className="tag tag-outline">{t.tagGratis}</span>
           <h1>{t.fraseEfeito}</h1>
           <p className="lede">{t.heroLede}</p>
           <div className="lp-botoes">

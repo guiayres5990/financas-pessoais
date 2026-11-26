@@ -53,7 +53,6 @@
   --font-display: "Fraunces", Georgia, serif;
   --font-heading: "DM Sans", system-ui, sans-serif;
   --font-body: "DM Sans", system-ui, sans-serif;
-  --font-heading-weight: 500;
 
   --space-1: 2.8px; --space-2: 5.6px; --space-3: 8.4px;
   --space-4: 11.2px; --space-6: 16.8px; --space-8: 22.4px;
@@ -115,10 +114,16 @@ body {
   margin: 0; background: var(--color-bg); color: var(--color-text);
   font-family: var(--font-body); font-size: 15px; line-height: 1.55;
 }
-h1, h2, h3, h4, h5 {
-  font-family: var(--font-display); font-weight: var(--font-heading-weight);
-  line-height: 1.12; letter-spacing: -0.015em; margin: 0 0 var(--space-2);
+/* Títulos em Fraunces: tamanho óptico fixo (36) e eixos SOFT/WONK em 0, para a letra não virar
+   o desenho "display" com curvas exageradas nos tamanhos grandes. Vale para h1–h5 e para a frase do login. */
+h1, h2, h3, h4, h5, .auth-frase {
+  font-family: var(--font-display); font-weight: 500;
+  font-optical-sizing: none;
+  font-variation-settings: "opsz" 36, "SOFT" 0, "WONK" 0;
+  font-variant-ligatures: none;
+  letter-spacing: -0.01em;
 }
+h1, h2, h3, h4, h5 { line-height: 1.12; margin: 0 0 var(--space-2); }
 h1 { font-size: 42px; } h2 { font-size: 32px; } h3 { font-size: 25px; }
 h4 { font-size: 20px; } h5 { font-size: 16px; }
 p { margin: 0 0 var(--space-3); }
@@ -226,7 +231,6 @@ img { display: block; max-width: 100%; }
 .card-title { margin: 0 0 16px; font-size: 13px; font-family: var(--font-heading); font-weight: 500; }
 .tag { display: inline-flex; align-items: center; font-size: 11px; padding: 3px 10px; border-radius: 6px; }
 .tag-accent { background: var(--color-accent-800); color: var(--color-accent-100); }
-.tag-outline { border: 1px solid var(--color-accent); color: var(--color-accent); }
 .kicker { font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--color-neutral-600); margin: 0; }
 .rule { height: 1px; border: 0; background: linear-gradient(to right, transparent, var(--color-divider) 24px, var(--color-divider) calc(100% - 24px), transparent); }
 
@@ -271,7 +275,7 @@ img { display: block; max-width: 100%; }
 .lp-idiomas button:hover { background: color-mix(in srgb, var(--color-text) 7%, transparent); }
 .lp-idiomas button[aria-pressed="true"] { background: var(--color-accent-900); color: var(--color-accent-200); }
 .hero { max-width: 1140px; margin: 0 auto; padding: 80px 32px 40px; display: grid; grid-template-columns: 1.05fr .95fr; gap: 64px; align-items: center; }
-.hero h1 { font-size: 64px; margin: 20px 0 18px; max-width: 13ch; }
+.hero h1 { font-size: 64px; margin: 0 0 18px; max-width: 13ch; }
 .hero p.lede { font-size: 17px; line-height: 1.6; max-width: 44ch; color: var(--color-neutral-300); }
 .lp-botoes { display: flex; gap: 12px; margin-top: 32px; flex-wrap: wrap; }
 .lp-nota { margin: 20px 0 0; font-size: 13px; color: var(--color-neutral-500); }
@@ -290,7 +294,7 @@ img { display: block; max-width: 100%; }
 .lp-recursos { list-style: none; margin: 44px 0 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 14px; }
 .lp-recurso { display: flex; align-items: flex-start; gap: 14px; min-width: 0; padding: 20px; border-radius: var(--radius-md); background: var(--color-surface); box-shadow: var(--shadow-sm); }
 .lp-recurso-icone { flex: none; width: 44px; height: 44px; display: grid; place-items: center; border-radius: 12px; background: var(--color-accent-900); color: var(--color-accent-200); font-size: 22px; }
-.lp-recurso h3 { margin: 0 0 4px; font-family: var(--font-heading); font-size: 16px; font-weight: 600; }
+.lp-recurso h3 { margin: 0 0 4px; font-family: var(--font-heading); font-size: 16px; font-weight: 600; font-optical-sizing: auto; font-variation-settings: normal; letter-spacing: 0; }
 .lp-recurso p { margin: 0; font-size: 14px; color: var(--color-neutral-400); }
 .lp-lgpd { display: grid; grid-template-columns: minmax(0, .9fr) minmax(0, 1.1fr); gap: 48px; align-items: start; padding: 48px; border-radius: var(--radius-lg); background: var(--color-surface); box-shadow: var(--shadow-sm); }
 .lp-lgpd-lista { list-style: none; margin: 0; padding: 0; display: grid; gap: 16px; }
@@ -317,7 +321,7 @@ img { display: block; max-width: 100%; }
 [data-theme="light"] .auth-aside { background: var(--color-accent-900); background-image: radial-gradient(110% 80% at 50% 0%, var(--color-surface), transparent 65%); }
 .auth-marca { display: grid; justify-items: center; gap: 28px; max-width: 440px; text-align: center; }
 .logo-auth { height: 240px; max-width: 100%; }
-.auth-frase { margin: 0; font-family: var(--font-display); font-size: 34px; line-height: 1.15; color: var(--color-text); }
+.auth-frase { margin: 0; font-size: 34px; line-height: 1.15; color: var(--color-text); }
 .auth-form { display: grid; place-items: center; padding: 112px 40px 56px; }
 .auth-cartao { width: 100%; max-width: 420px; }
 .auth-cartao h3 { font-size: 30px; }
