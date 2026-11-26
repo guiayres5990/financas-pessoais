@@ -208,6 +208,7 @@ img { display: block; max-width: 100%; }
 }
 .input:hover { border-color: color-mix(in srgb, var(--color-text) 45%, transparent); }
 .input:focus-visible { border-color: var(--color-accent); outline-offset: 0; }
+.input[aria-invalid="true"] { border-color: var(--color-negative); }
 .valor-field {
   display: flex; align-items: center; gap: 10px; padding: 10px 12px;
   border-radius: var(--radius-md); background: var(--color-neutral-900);
@@ -474,6 +475,19 @@ img { display: block; max-width: 100%; }
 .chip { padding: 6px 12px; border-radius: var(--radius-md); font-size: 12px; cursor: pointer; background: transparent; border: 1px solid var(--color-divider); color: var(--color-neutral-500); font-family: inherit; }
 .chip[aria-pressed="true"] { border-color: var(--color-accent); color: var(--color-accent); }
 .chip-novo { display: inline-flex; align-items: center; gap: 4px; border-style: dashed; }
+/* "Crie seu primeiro atalho": convite em destaque quando a categoria ainda não tem atalhos */
+.chip-primeiro { min-height: 40px; padding: 8px 14px; gap: 6px; font-size: 13px; font-weight: 600; border-style: solid; border-color: var(--color-accent); color: var(--color-accent); background: color-mix(in srgb, var(--color-accent) 10%, transparent); }
+.chip-primeiro:hover { background: color-mix(in srgb, var(--color-accent) 18%, transparent); }
+/* bloco "Do que foi esse lançamento?": atalho OU detalhe */
+.lanc-classe { min-width: 0; margin: 0; padding: 0; border: 0; display: grid; gap: 8px; }
+.lanc-classe-titulo { padding: 0; margin: 0 0 2px; font-size: 14px; font-weight: 600; color: var(--color-text); }
+.lanc-classe-dica { display: flex; align-items: center; gap: 6px; margin: -4px 0 4px; font-size: 13px; color: var(--color-neutral-500); }
+.lanc-classe-dica i { font-size: 16px; }
+.lanc-classe-erro { color: var(--color-negative); font-weight: 500; }
+.lanc-classe-rotulo { display: block; font-size: 12px; color: var(--color-neutral-400); }
+.lanc-classe-ou { display: flex; align-items: center; gap: 10px; margin: 4px 0; }
+.lanc-classe-ou div { flex: 1; height: 1px; background: var(--color-divider); }
+.lanc-classe-ou span { font-size: 12px; color: var(--color-neutral-500); }
 .chip-grupo { display: inline-flex; align-items: center; border: 1px solid var(--color-divider); border-radius: var(--radius-md); }
 .chip-grupo[data-ativo="true"] { border-color: var(--color-accent); }
 .chip-grupo .chip { border: none; padding-right: 4px; }

@@ -103,6 +103,9 @@ export default function App() {
   const [salvandoSub, setSalvandoSub] = useState(false);
   const [lancErr, setLancErr] = useState("");
   const [valorErr, setValorErr] = useState(""); // erro do campo valor ao tentar salvar vazio
+  const [classErr, setClassErr] = useState(false); // tentou salvar sem atalho e sem detalhe
+  // o erro some assim que a pessoa escolhe um atalho ou digita um detalhe
+  useEffect(() => { if (form.sub || form.desc.trim()) setClassErr(false); }, [form.sub, form.desc]);
   const [saving, setSaving] = useState(false);
   const [rota, setRota] = useState(() => window.location.hash);
   const [aceitePriv, setAceitePriv] = useState(false);
@@ -269,9 +272,11 @@ export default function App() {
     const lido = parseValor(form.valor, lang); // nunca grava se a leitura der erro
     const sub = form.sub.trim().slice(0, MAX_SUB);
     const desc = form.desc.trim() || sub; // detalhe vazio: grava o nome do atalho (o banco exige desc)
-    if (!lido.ok) { setValorErr(msgValor(lido.erro)); return; }
+    // mesma regra de antes (valor válido + atalho OU detalhe); agora os dois avisos aparecem juntos
+    if (!lido.ok) setValorErr(msgValor(lido.erro));
+    if (!desc) setClassErr(true);
+    if (!lido.ok || !desc) return;
     const v = lido.valor;
-    if (!desc) { setLancErr(tr.lancFaltaDesc); return; }
     setSaving(true); setLancErr("");
     const novo = { tipo: form.tipo, valor: v, desc, cat: form.cat, data: form.data, uid: user.uid, criadoEm: new Date() };
     if (sub) novo.sub = sub; // campo opcional
@@ -747,9 +752,15 @@ export default function App() {
                     <input className="input" type="date" value={form.data} onChange={e => setForm(f => ({ ...f, data: e.target.value }))} />
                   </div>
                 </div>
-                <div className="field">
-                  <label>{tr.atalhosLabel}</label>
-                  <div className="chips">
+                {/* Classificação: obrigatório escolher um atalho OU escrever um detalhe.
+                    A dica fica neutra; só vira erro (coral) depois de tentar salvar sem nenhum dos dois. */}
+                <fieldset className="lanc-classe" aria-describedby="lanc-classe-dica">
+                  <legend className="lanc-classe-titulo">{tr.classeTitulo}</legend>
+                  <p id="lanc-classe-dica" className={"lanc-classe-dica" + (classErr ? " lanc-classe-erro" : "")} aria-live="polite">
+                    {classErr && <i className="ph ph-warning-circle" aria-hidden="true" />}{tr.classeDica}
+                  </p>
+                  <span id="lanc-atalho-rotulo" className="lanc-classe-rotulo">{tr.atalhosLabel}</span>
+                  <div className="chips" role="group" aria-labelledby="lanc-atalho-rotulo">
                     {atalhosCat.map(a => (
                       <span key={a.id} className="chip-grupo" data-ativo={form.sub === a.nome}>
                         <button type="button" className="chip" aria-pressed={form.sub === a.nome} onClick={() => escolherAtalho(a.nome)}>{a.nome}</button>
@@ -758,19 +769,18 @@ export default function App() {
                         </button>
                       </span>
                     ))}
-                    <button type="button" className="chip chip-novo" onClick={() => { setSubTxt(""); setSubErr(""); setDialogSub(true); }}>
-                      <i className="ph ph-plus" /> {tr.novoAtalho}
+                    {/* sem atalhos na categoria: botão em destaque convidando a criar o primeiro (não é obrigatório) */}
+                    <button type="button" className={"chip chip-novo" + (atalhosCat.length === 0 ? " chip-primeiro" : "")}
+                      onClick={() => { setSubTxt(""); setSubErr(""); setDialogSub(true); }}>
+                      <i className="ph ph-plus" /> {atalhosCat.length === 0 ? tr.primeiroAtalho : tr.novoAtalho}
                     </button>
                   </div>
-                  {atalhosCat.length === 0 && (
-                    <p style={{ margin: "8px 0 0", fontSize: 12, color: "var(--color-neutral-500)" }}>{tr.atalhosDica}</p>
-                  )}
-                </div>
-                <div className="field">
-                  <label>{tr.descricao}</label>
-                  <input className="input" placeholder={tr.descOpcional} value={form.desc} maxLength={120}
+                  <div className="lanc-classe-ou" aria-hidden="true"><div /><span>{tr.ou}</span><div /></div>
+                  <label htmlFor="lanc-detalhe" className="lanc-classe-rotulo">{tr.detalheLabel}</label>
+                  <input id="lanc-detalhe" className="input" placeholder={tr.detalheExemplo} value={form.desc} maxLength={120}
+                    aria-invalid={classErr} aria-describedby="lanc-classe-dica"
                     onChange={e => { setLancErr(""); setForm(f => ({ ...f, desc: e.target.value })); }} />
-                </div>
+                </fieldset>
                 {lancErr && <p style={{ margin: 0, fontSize: 13, color: "var(--color-negative)" }}>{lancErr}</p>}
                 <div style={{ display: "flex", gap: 10, marginTop: 4 }}>
                   <button className="btn btn-primary" style={{ flex: 1, padding: 11 }} disabled={saving} onClick={addTx}>

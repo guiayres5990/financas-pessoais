@@ -52,6 +52,7 @@ Dono: Guizera (19, Administração na FGV, São Paulo). Ele está aprendendo: ex
 
 - Menores de 18 podem usar o app (menores de 12 com conta criada e acompanhada por um responsável).
 - CPF, telefone, nascimento e foto são opcionais. Foto sem Firebase Storage.
+- Lançamento: obrigatório escolher um atalho OU escrever um detalhe. Bloco "Do que foi esse lançamento?" com dica neutra; erro em coral só depois de tentar salvar (some ao preencher); sem atalhos na categoria, botão "Crie seu primeiro atalho" em destaque.
 - Sem simulador, sem atalhos prontos, sem seletor de idioma na Política, sem destaque no "Legal" do menu, sem nome pessoal na Política.
 - Textos da Landing sobre dados só repetem o que a Política afirma.
 - Rodapé da Landing só com o essencial: logo, "Política de Privacidade" e "FALC · feito no Brasil · privacidade primeiro". Idioma e tema ficam só no cabeçalho do topo.
