@@ -514,6 +514,12 @@ img { display: block; max-width: 100%; }
 .chips { display: flex; gap: 8px; flex-wrap: wrap; }
 /* atalhos "Dia N" do Relatório: dia em cima, período aplicado embaixo */
 .ciclo { display: grid; gap: 8px; }
+/* setas entre ciclos (mesmo seletor do mês da Visão geral; dentro do cartão, fundo um tom abaixo) */
+.ciclo-nav { justify-self: start; margin-top: 4px; background: var(--color-neutral-900); }
+.ciclo-nav .btn-icon { width: 40px; height: 40px; }
+.ciclo-nav span { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-width: 140px; }
+.ciclo-nav .btn[aria-disabled="true"] { opacity: 0.3; cursor: not-allowed; background: none; }
+.ciclo-andamento { font-size: 10px; padding: 2px 8px; }
 .rel-periodo-texto { margin: -4px 0 0; font-size: 13px; color: var(--color-neutral-400); }
 .rel-aviso { display: flex; align-items: center; gap: 6px; margin: -4px 0 0; font-size: 14px; font-weight: 500; color: var(--color-negative); }
 .ciclo-rotulo { margin: 0; font-size: 13px; color: var(--color-neutral-400); }

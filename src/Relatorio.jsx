@@ -6,6 +6,16 @@ import { qtdLanc } from "./i18n";
 import { ordenarLancamentos, isoLocal } from "./ordenar";
 
 const CICLOS = [1, 5, 10, 15, 20, 25];
+
+// Dia de pagamento escolhido: só no localStorage deste navegador (nunca no Firestore/perfil).
+// try/catch: se o armazenamento estiver bloqueado, o Relatório funciona igual, só não lembra.
+const CHAVE_DIA = "falc:diaPagamento";
+const lerDiaSalvo = () => {
+  try { const n = Number(localStorage.getItem(CHAVE_DIA)); return CICLOS.includes(n) ? n : null; } catch { return null; }
+};
+const salvarDia = dia => {
+  try { if (dia) localStorage.setItem(CHAVE_DIA, String(dia)); else localStorage.removeItem(CHAVE_DIA); } catch { /* bloqueado */ }
+};
 const br = iso => iso.split("-").reverse().join("/");
 
 const CAT_COLORS = {
@@ -41,9 +51,22 @@ function loadImageAsBase64(src) {
 export default function Relatorio({ txs, userEmail, privado, t = {}, lang = "pt" }) {
   const hoje = new Date();
   // datas sempre no fuso do aparelho (toISOString usaria UTC e trocaria o dia em alguns horários/fusos)
-  const [dataInicio, setDataInicio] = useState(() => isoLocal(new Date(hoje.getFullYear(), hoje.getMonth(), 1)));
-  const [dataFim, setDataFim] = useState(() => isoLocal(hoje));
-  const [cicloAtivo, setCicloAtivo] = useState(null);
+  // Atalho "Dia N" (ciclo de quem recebe no dia N): Início = dia N do mês passado,
+  // Fim = véspera do dia N deste mês, para o mesmo dia não entrar em dois ciclos.
+  // Ex.: "Dia 10" = 10/10 a 09/11; "Dia 1" = 01/10 a 31/10 (dia 0 = último dia do mês anterior).
+  // k desloca o ciclo (k = -1: o anterior; k = 1: o seguinte).
+  function cicloDatas(dia, k = 0) {
+    return [
+      isoLocal(new Date(hoje.getFullYear(), hoje.getMonth() - 1 + k, dia)),
+      isoLocal(new Date(hoje.getFullYear(), hoje.getMonth() + k, dia - 1)),
+    ];
+  }
+  // ao abrir: se houver dia guardado, aplica o mesmo ciclo que o clique no atalho aplicaria
+  const [diaInicial] = useState(lerDiaSalvo);
+  const [dataInicio, setDataInicio] = useState(() => diaInicial ? cicloDatas(diaInicial)[0] : isoLocal(new Date(hoje.getFullYear(), hoje.getMonth(), 1)));
+  const [dataFim, setDataFim] = useState(() => diaInicial ? cicloDatas(diaInicial)[1] : isoLocal(hoje));
+  const [cicloAtivo, setCicloAtivo] = useState(diaInicial);
+  const [desloc, setDesloc] = useState(0); // ciclos a partir do do atalho (0 = o do atalho; -1 = anterior...)
   const [gerando, setGerando] = useState(false);
 
   const m = v => (privado ? "R$ ••••" : fmt(v));
@@ -64,13 +87,6 @@ export default function Relatorio({ txs, userEmail, privado, t = {}, lang = "pt"
     .filter(c => c.total > 0)
     .sort((a, b) => b.total - a.total);
 
-  // Atalho "Dia N" (ciclo de quem recebe no dia N): Início = dia N do mês passado,
-  // Fim = véspera do dia N deste mês, para o mesmo dia não entrar em dois ciclos.
-  // Ex.: "Dia 10" = 10/10 a 09/11; "Dia 1" = 01/10 a 31/10 (dia 0 = último dia do mês anterior).
-  const cicloDatas = dia => [
-    isoLocal(new Date(hoje.getFullYear(), hoje.getMonth() - 1, dia)),
-    isoLocal(new Date(hoje.getFullYear(), hoje.getMonth(), dia - 1)),
-  ];
   // período por extenso, sem depender do formato do campo de data do navegador (dd/mm x mm/dd)
   const dataExtensa = iso => new Date(iso + "T12:00:00").toLocaleDateString(lang === "en" ? "en-US" : "pt-BR", { day: lang === "en" ? "numeric" : "2-digit", month: lang === "en" ? "short" : "2-digit", year: "numeric" });
   const invertido = dataInicio && dataFim && dataInicio > dataFim;
@@ -78,12 +94,37 @@ export default function Relatorio({ txs, userEmail, privado, t = {}, lang = "pt"
   const diaMes = iso => lang === "en"
     ? new Date(iso + "T12:00:00").toLocaleDateString("en-US", { month: "short", day: "numeric" })
     : iso.slice(8, 10) + "/" + iso.slice(5, 7);
+  // Clicar no atalho: aplica o ciclo do atalho (desloc 0) e guarda o dia. Clicar de novo no já
+  // selecionado: desmarca e apaga o dia guardado (as datas ficam como estão).
   function periodoFixo(dia) {
+    if (cicloAtivo === dia) { setCicloAtivo(null); setDesloc(0); salvarDia(null); return; }
     const [ini, fim] = cicloDatas(dia);
-    setCicloAtivo(dia);
+    setCicloAtivo(dia); setDesloc(0); salvarDia(dia);
     setDataInicio(ini);
     setDataFim(fim);
   }
+
+  // Navegação entre ciclos (setas). Limite de trás: ciclo do 1º lançamento da conta (txs já
+  // carregados, sem consulta nova). Limite da frente: ciclo que contém hoje.
+  const hojeIso = isoLocal(hoje);
+  const primeiraData = txs.reduce((min, tx) => (tx.data && (!min || tx.data < min) ? tx.data : min), null);
+  const limites = dia => {
+    let max = 0;
+    while (max < 24 && cicloDatas(dia, max)[1] < hojeIso) max++;
+    let min = 0;
+    if (primeiraData) while (min > -240 && cicloDatas(dia, min)[0] > primeiraData) min--;
+    return { min: Math.min(min, 0), max: Math.max(max, 0) };
+  };
+  const lim = cicloAtivo ? limites(cicloAtivo) : { min: 0, max: 0 };
+  const podeVoltar = !!cicloAtivo && desloc > lim.min;
+  const podeAvancar = !!cicloAtivo && desloc < lim.max;
+  function andarCiclo(passo) {
+    if (!cicloAtivo || (passo < 0 && !podeVoltar) || (passo > 0 && !podeAvancar)) return;
+    const novo = desloc + passo;
+    const [ini, fim] = cicloDatas(cicloAtivo, novo);
+    setDesloc(novo); setDataInicio(ini); setDataFim(fim);
+  }
+  const cicloEmAndamento = !!cicloAtivo && dataInicio <= hojeIso && hojeIso <= dataFim;
 
   const catLabel = id => {
     const labels = {
@@ -296,22 +337,34 @@ export default function Relatorio({ txs, userEmail, privado, t = {}, lang = "pt"
               );
             })}
           </div>
+          {cicloAtivo && (
+            <div className="month-picker ciclo-nav">
+              <button type="button" className="btn btn-icon btn-ghost" aria-label={t.cicloAnterior} title={t.cicloAnterior}
+                aria-disabled={!podeVoltar} onClick={() => andarCiclo(-1)}><i className="ph ph-caret-left" style={{ fontSize: 14 }} aria-hidden="true" /></button>
+              <span aria-live="polite">
+                {diaMes(dataInicio)} {t.cicloAte} {diaMes(dataFim)}
+                {cicloEmAndamento && <span className="tag tag-accent ciclo-andamento">{t.emAndamento}</span>}
+              </span>
+              <button type="button" className="btn btn-icon btn-ghost" aria-label={t.proximoCiclo} title={t.proximoCiclo}
+                aria-disabled={!podeAvancar} onClick={() => andarCiclo(1)}><i className="ph ph-caret-right" style={{ fontSize: 14 }} aria-hidden="true" /></button>
+            </div>
+          )}
         </div>
         <div className="rel-periodo">
           <div className="field">
             <label>{t.inicio || "Início"}</label>
             <input className="input" type="date" value={dataInicio}
-              onChange={e => { setDataInicio(e.target.value); setCicloAtivo(null); }} />
+              onChange={e => { setDataInicio(e.target.value); setCicloAtivo(null); setDesloc(0); }} />
           </div>
           <div className="field">
             <label>{t.fim || "Fim"}</label>
             <input className="input" type="date" value={dataFim}
-              onChange={e => { setDataFim(e.target.value); setCicloAtivo(null); }} />
+              onChange={e => { setDataFim(e.target.value); setCicloAtivo(null); setDesloc(0); }} />
           </div>
           {/* sem lançamentos no período: exportar fica desativado (com a dica no title e ligada à mensagem) */}
           <button className="btn btn-primary" style={{ padding: "10px 18px", gap: 8, minHeight: 44 }}
             disabled={gerando || invertido || !txPeriodo.length} onClick={gerarPDF}
-            title={invertido ? t.dataInvertida : !txPeriodo.length ? (t.nenhumPeriodo || "") : undefined}
+            title={invertido ? t.dataInvertida : !txPeriodo.length ? ((cicloAtivo ? t.cicloVazio : t.nenhumPeriodo) || "") : undefined}
             aria-describedby={invertido ? "rel-aviso" : !txPeriodo.length ? "rel-vazio" : undefined}>
             <i className="ph ph-file-pdf" style={{ fontSize: 16 }} />
             {gerando ? (t.gerando || "Gerando…") : (t.gerarPDF || "Gerar PDF")}
@@ -325,7 +378,7 @@ export default function Relatorio({ txs, userEmail, privado, t = {}, lang = "pt"
 
       {invertido ? null : txPeriodo.length === 0 ? (
         <div className="card vazio-card">
-          <Vazio id="rel-vazio" texto={t.nenhumPeriodo} />
+          <Vazio id="rel-vazio" texto={cicloAtivo ? t.cicloVazio : t.nenhumPeriodo} />
         </div>
       ) : (
         <div className="card">
