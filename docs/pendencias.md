@@ -28,6 +28,7 @@ Sempre respeitar a REGRA DE DADOS do `CLAUDE.md` (nada de gravar no Firebase).
 
 ## Ideias futuras
 
+- **Dica 'Dá para gastar por dia'** (saldo restante ÷ dias que faltam) como primeira regra do auxiliar financeiro, tratando o caso de saldo zero ou negativo e renda irregular.
 - **Auxiliar financeiro:** primeiro com regras no próprio app (dicas a partir dos lançamentos); depois, IA opcional.
 - **Vídeo tutorial na Landing.**
 - **Renomear o projeto na Vercel e no GitHub** (hoje `financas-pessoais`) para FALC.
@@ -49,4 +50,6 @@ Sempre respeitar a REGRA DE DADOS do `CLAUDE.md` (nada de gravar no Firebase).
 | Rodapé da Landing só com o essencial; sombra e elevação nos cartões (`.card-hover`) | `9090169` |
 | Arquivos sem uso removidos (`instalar.bat`, `atualizar.bat`, `Relatorio.jsx` da raiz, `src/App.css`) | `d9856f5` |
 | Cópia das regras v4 em `firestore.rules`; conferido que os campos do app batem com elas | `d9856f5` |
+| App só em português e inglês; gráfico de 6 meses com tooltip, saldo e mês atual | `fbb21e8` |
+| Visão geral sem "Projeção do mês"; categorias (60%) e gráfico de 6 meses (40%) na mesma linha | 27/11/2026 |
 | Bug do valor: "1.000,50" virava R$ 1,00. Agora `parseValor` lê o valor, mostra a prévia e recusa entradas inválidas (lançamentos antigos gravados errado não foram mexidos: o dono apaga e recria) | `c1b79f1` |

@@ -244,11 +244,6 @@ export default function App() {
   const despesas = txMes.filter(t => t.tipo === "despesa").reduce((s, t) => s + t.valor, 0);
   const saldo = receitas - despesas;
   const porCat = CATS.map(c => ({ ...c, total: txMes.filter(tx => tx.tipo === "despesa" && tx.cat === c.id).reduce((s, tx) => s + tx.valor, 0) })).filter(c => c.total > 0).sort((a, b) => b.total - a.total);
-  const agora = new Date();
-  const diasMes = new Date(ano, mes + 1, 0).getDate();
-  const diaAtual = (mes === agora.getMonth() && ano === agora.getFullYear()) ? agora.getDate() : diasMes;
-  const projecao = diaAtual > 0 ? (despesas / diaAtual) * diasMes : 0;
-  const projPct = receitas > 0 ? Math.min(100, Math.round((projecao / receitas) * 100)) : 0;
   const txFiltradas = txMes.filter(tx => busca === "" || tx.desc.toLowerCase().includes(busca.toLowerCase()) || getCat(tx.cat).label.toLowerCase().includes(busca.toLowerCase()) || (tx.sub || "").toLowerCase().includes(busca.toLowerCase()));
 
   // Atalhos da categoria escolhida: prontos (código) + criados pelo usuário (banco)
@@ -735,29 +730,9 @@ export default function App() {
                   )}
                 </div>
 
-                <div className="card card-hover card-hover-fixo" style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-                  <p className="card-title" style={{ margin: 0 }}>{tr.projecao}</p>
-                  <div>
-                    <p style={{ margin: 0, fontSize: 30, fontFamily: "var(--font-heading)", color: "var(--color-negative)" }}>{money(projecao)}</p>
-                    <p style={{ margin: "6px 0 0", fontSize: 12, color: "var(--color-neutral-500)" }}>{tr.ritmoAtual}</p>
-                  </div>
-                  <div style={{ display: "grid", gap: 6 }}>
-                    <div className="bar-track" style={{ height: 6, borderRadius: 3 }}>
-                      <div style={{ height: 6, borderRadius: 3, background: "var(--color-accent-600)", width: projPct + "%" }} />
-                    </div>
-                    <div style={{ display: "flex", justifyContent: "space-between", fontSize: 11, color: "var(--color-neutral-600)" }}>
-                      <span>{projPct}{tr.pctReceita}</span>
-                      <span>{tr.receita2} {money(receitas)}</span>
-                    </div>
-                  </div>
-                  <div className="proj-note" style={{ marginTop: "auto" }}>
-                    <i className={projecao > receitas ? "ph ph-warning" : "ph ph-check-circle"} style={{ fontSize: 18, color: "var(--color-accent-300)" }} />
-                    <p>{projecao > receitas ? tr.projecaoAcima : `${tr.sobraprevista} ${money(Math.max(0, receitas - projecao))}.`}</p>
-                  </div>
-                </div>
-              </div>
 
-              <div className="card">
+                {/* "Últimos 6 meses" ao lado das categorias (60% / 40%; empilha até 900px) */}
+                <div className="card dash-grafico">
                 <div style={{ display: "flex", alignItems: "center", gap: 16, marginBottom: 20, flexWrap: "wrap" }}>
                   <p className="card-title" style={{ margin: 0, marginRight: "auto" }}>{tr.ultimos6}</p>
                   <div className="legend">
@@ -793,6 +768,7 @@ export default function App() {
                       </div>
                     );
                   })}
+                </div>
                 </div>
               </div>
             </div>
