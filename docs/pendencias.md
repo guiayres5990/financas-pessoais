@@ -56,4 +56,5 @@ Sempre respeitar a REGRA DE DADOS do `CLAUDE.md` (nada de gravar no Firebase).
 | Acabamento: atalhos do Relatório explicados, painel com Salvar primário, login sem frase e compacto, plural certo, contêiner centralizado, títulos de cartão, Histórico | 28/11/2026 |
 | Histórico com rodapé só de contagem; ordem data/criadoEm desc em todas as listas; logo leva à Visão geral; foco só no teclado; atalhos do Relatório até a véspera, datas locais e aviso de data invertida | 28/11/2026 |
 | Relatório: setas entre ciclos (até o 1º lançamento e até o ciclo de hoje, "em andamento") e dia de pagamento lembrado no navegador | 28/11/2026 |
+| Relatório: atalho selecionado, setas, campos e "Período:" sempre com o mesmo intervalo (fonte única `cicloDatas`) | 28/11/2026 |
 | Bug do valor: "1.000,50" virava R$ 1,00. Agora `parseValor` lê o valor, mostra a prévia e recusa entradas inválidas (lançamentos antigos gravados errado não foram mexidos: o dono apaga e recria) | `c1b79f1` |
