@@ -15,6 +15,7 @@ import Perfil from "./Perfil";
 import PageHeader from "./PageHeader";
 import PainelLancamento from "./PainelLancamento";
 import { BoasVindas, Vazio } from "./Vazios";
+import { ordenarLancamentos, isoLocal } from "./ordenar";
 import { MAX_SUB } from "./subcategorias";
 import { parseValor } from "./parseValor";
 import { T, LANGS, idiomaInicial, normalizarIdioma, qtdLanc } from "./i18n";
@@ -39,7 +40,7 @@ const MES_CURTO = {
 };
 
 export const fmt = v => v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
-const hoje = () => new Date().toISOString().slice(0, 10);
+const hoje = () => isoLocal(); // data local (toISOString usaria UTC e viraria o dia depois das 21h)
 
 function LangPicker({ lang, setLang }) {
   const [open, setOpen] = useState(false);
@@ -205,7 +206,7 @@ export default function App() {
   useEffect(() => {
     if (!user) return;
     const q = query(collection(db, "transacoes"), where("uid","==",user.uid), orderBy("data","desc"));
-    return onSnapshot(q, snap => { setTxs(snap.docs.map(d => ({ id: d.id, ...d.data() }))); setTxsCarregados(true); });
+    return onSnapshot(q, snap => { setTxs(ordenarLancamentos(snap.docs.map(d => ({ id: d.id, ...d.data() })))); setTxsCarregados(true); });
   }, [user]);
 
   // Atalhos criados pelo usuário: só where(uid), sem orderBy (ordena aqui no cliente)
@@ -333,6 +334,11 @@ export default function App() {
       setLancErr(tr.erroSalvar);
     }
     setSaving(false);
+  }
+
+  function irVisaoGeral() {
+    if (view !== "dashboard") setView("dashboard");
+    window.scrollTo({ top: 0, behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" });
   }
 
   function abrirPainel(e) {
@@ -488,7 +494,7 @@ export default function App() {
     const data = iso => (pt && iso ? iso.split("-").reverse().join("/") : iso || "");
     const valor = v => { const n = (Number(v) || 0).toFixed(2); return pt ? n.replace(".", ",") : n; };
     const cab = [tr.data, tr.tipoLabel, tr.categoria, tr.subcategoria, tr.descricao, tr.valor].map(q).join(";");
-    const linhas = [...txs].sort((a, b) => String(a.data).localeCompare(String(b.data))).map(tx => [
+    const linhas = ordenarLancamentos(txs).map(tx => [
       data(tx.data),
       q(tx.tipo === "receita" ? tr.receita : tr.despesa),
       q(getCat(tx.cat).label),
@@ -638,7 +644,10 @@ export default function App() {
     <div className="shell">
       {/* com o painel aberto, a página atrás fica inerte (sem foco nem clique) */}
       <aside className="sidebar" inert={painel ? "" : undefined}>
-        <span className="brand"><Logo variant="horizontal" className="logo-sidebar logo-sidebar-h" /><Logo variant="simbolo" className="logo-sidebar logo-sidebar-s" /></span>
+        {/* logo leva à Visão geral (já nela: volta ao topo) */}
+        <button type="button" className="brand brand-botao" aria-label={tr.irVisaoGeral} onClick={irVisaoGeral}>
+          <Logo variant="horizontal" className="logo-sidebar logo-sidebar-h" /><Logo variant="simbolo" className="logo-sidebar logo-sidebar-s" />
+        </button>
         <nav className="side-nav">
           {VIEWS.map(([id, label, icon]) => (
             <button key={id} onClick={() => setView(id)} aria-current={view === id ? "page" : undefined}>
@@ -841,7 +850,7 @@ export default function App() {
                 )}
               </div>
               <p style={{ margin: 0, fontSize: 12, color: "var(--color-neutral-600)" }}>
-                {qtdLanc(txMes.length, tr)} · {money(despesas)} {tr.despesas.toLowerCase()}
+                {qtdLanc(txFiltradas.length, tr)}
               </p>
               </>)}
             </div>
@@ -859,7 +868,7 @@ export default function App() {
           )}
 
           {view === "relatorio" && (
-            <Relatorio txs={txs} userEmail={user.email || user.displayName} privado={privado} t={tr} />
+            <Relatorio txs={txs} userEmail={user.email || user.displayName} privado={privado} t={tr} lang={lang} />
           )}
         </div>
       </main>

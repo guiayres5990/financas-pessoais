@@ -3,6 +3,7 @@ import jsPDF from "jspdf";
 import { CATS_BASE, fmt } from "./App";
 import { Vazio } from "./Vazios";
 import { qtdLanc } from "./i18n";
+import { ordenarLancamentos, isoLocal } from "./ordenar";
 
 const CICLOS = [1, 5, 10, 15, 20, 25];
 const br = iso => iso.split("-").reverse().join("/");
@@ -37,16 +38,17 @@ function loadImageAsBase64(src) {
   });
 }
 
-export default function Relatorio({ txs, userEmail, privado, t = {} }) {
+export default function Relatorio({ txs, userEmail, privado, t = {}, lang = "pt" }) {
   const hoje = new Date();
-  const [dataInicio, setDataInicio] = useState(() => new Date(hoje.getFullYear(), hoje.getMonth(), 1).toISOString().slice(0, 10));
-  const [dataFim, setDataFim] = useState(() => hoje.toISOString().slice(0, 10));
+  // datas sempre no fuso do aparelho (toISOString usaria UTC e trocaria o dia em alguns horários/fusos)
+  const [dataInicio, setDataInicio] = useState(() => isoLocal(new Date(hoje.getFullYear(), hoje.getMonth(), 1)));
+  const [dataFim, setDataFim] = useState(() => isoLocal(hoje));
   const [cicloAtivo, setCicloAtivo] = useState(null);
   const [gerando, setGerando] = useState(false);
 
   const m = v => (privado ? "R$ ••••" : fmt(v));
 
-  const txPeriodo = txs.filter(tx => tx.data >= dataInicio && tx.data <= dataFim);
+  const txPeriodo = ordenarLancamentos(txs.filter(tx => tx.data >= dataInicio && tx.data <= dataFim));
   const receitas  = txPeriodo.filter(tx => tx.tipo === "receita").reduce((s, tx) => s + tx.valor, 0);
   const despesas  = txPeriodo.filter(tx => tx.tipo === "despesa").reduce((s, tx) => s + tx.valor, 0);
   const saldo     = receitas - despesas;
@@ -62,13 +64,20 @@ export default function Relatorio({ txs, userEmail, privado, t = {} }) {
     .filter(c => c.total > 0)
     .sort((a, b) => b.total - a.total);
 
-  // Atalho "Dia N" (ciclo de quem recebe no dia N): Início = dia N do mês passado, Fim = dia N deste mês.
-  // (comportamento mantido como sempre foi; o rótulo só mostra o período que ele aplica)
+  // Atalho "Dia N" (ciclo de quem recebe no dia N): Início = dia N do mês passado,
+  // Fim = véspera do dia N deste mês, para o mesmo dia não entrar em dois ciclos.
+  // Ex.: "Dia 10" = 10/10 a 09/11; "Dia 1" = 01/10 a 31/10 (dia 0 = último dia do mês anterior).
   const cicloDatas = dia => [
-    new Date(hoje.getFullYear(), hoje.getMonth() - 1, dia).toISOString().slice(0, 10),
-    new Date(hoje.getFullYear(), hoje.getMonth(), dia).toISOString().slice(0, 10),
+    isoLocal(new Date(hoje.getFullYear(), hoje.getMonth() - 1, dia)),
+    isoLocal(new Date(hoje.getFullYear(), hoje.getMonth(), dia - 1)),
   ];
-  const diaMes = iso => iso.slice(8, 10) + "/" + iso.slice(5, 7);
+  // período por extenso, sem depender do formato do campo de data do navegador (dd/mm x mm/dd)
+  const dataExtensa = iso => new Date(iso + "T12:00:00").toLocaleDateString(lang === "en" ? "en-US" : "pt-BR", { day: lang === "en" ? "numeric" : "2-digit", month: lang === "en" ? "short" : "2-digit", year: "numeric" });
+  const invertido = dataInicio && dataFim && dataInicio > dataFim;
+  // PT: "10/10"; EN: "Oct 10" (nome do mês, para não confundir dia/mês com mês/dia)
+  const diaMes = iso => lang === "en"
+    ? new Date(iso + "T12:00:00").toLocaleDateString("en-US", { month: "short", day: "numeric" })
+    : iso.slice(8, 10) + "/" + iso.slice(5, 7);
   function periodoFixo(dia) {
     const [ini, fim] = cicloDatas(dia);
     setCicloAtivo(dia);
@@ -228,7 +237,7 @@ export default function Relatorio({ txs, userEmail, privado, t = {} }) {
     pdf.text("VALOR", W - M - 20, y + 4);
     y += 8;
 
-    [...txPeriodo].sort((a, b) => a.data.localeCompare(b.data)).forEach((tx, i) => {
+    txPeriodo.forEach((tx, i) => {
       checkPage(8);
       if (i % 2 === 0) {
         pdf.setFillColor(250, 247, 242);
@@ -301,16 +310,20 @@ export default function Relatorio({ txs, userEmail, privado, t = {} }) {
           </div>
           {/* sem lançamentos no período: exportar fica desativado (com a dica no title e ligada à mensagem) */}
           <button className="btn btn-primary" style={{ padding: "10px 18px", gap: 8, minHeight: 44 }}
-            disabled={gerando || !txPeriodo.length} onClick={gerarPDF}
-            title={!txPeriodo.length ? (t.nenhumPeriodo || "") : undefined}
-            aria-describedby={!txPeriodo.length ? "rel-vazio" : undefined}>
+            disabled={gerando || invertido || !txPeriodo.length} onClick={gerarPDF}
+            title={invertido ? t.dataInvertida : !txPeriodo.length ? (t.nenhumPeriodo || "") : undefined}
+            aria-describedby={invertido ? "rel-aviso" : !txPeriodo.length ? "rel-vazio" : undefined}>
             <i className="ph ph-file-pdf" style={{ fontSize: 16 }} />
             {gerando ? (t.gerando || "Gerando…") : (t.gerarPDF || "Gerar PDF")}
           </button>
         </div>
+        {/* confirmação do período por extenso; início depois do fim → aviso (e PDF desativado) */}
+        {invertido
+          ? <p id="rel-aviso" className="rel-aviso" role="alert"><i className="ph ph-warning-circle" aria-hidden="true" /> {t.dataInvertida}</p>
+          : <p className="rel-periodo-texto">{t.periodoAplicado} {dataExtensa(dataInicio)} {t.cicloAte} {dataExtensa(dataFim)}</p>}
       </div>
 
-      {txPeriodo.length === 0 ? (
+      {invertido ? null : txPeriodo.length === 0 ? (
         <div className="card vazio-card">
           <Vazio id="rel-vazio" texto={t.nenhumPeriodo} />
         </div>
@@ -352,7 +365,7 @@ export default function Relatorio({ txs, userEmail, privado, t = {} }) {
           <p className="card-title" style={{ marginBottom: 8 }}>{t.lancamentosLista || "Lançamentos"}</p>
           <div className="table-scroll"><table className="table">
             <tbody>
-              {[...txPeriodo].sort((a, b) => a.data.localeCompare(b.data)).map(tx => (
+              {txPeriodo.map(tx => (
                 <tr key={tx.id}>
                   <td style={{ fontSize: 13 }}>
                     {tx.desc}

@@ -54,4 +54,5 @@ Sempre respeitar a REGRA DE DADOS do `CLAUDE.md` (nada de gravar no Firebase).
 | Visão geral sem "Projeção do mês"; categorias (60%) e gráfico de 6 meses (40%) na mesma linha | 27/11/2026 |
 | Telas vazias: boas-vindas na Visão geral, mês vazio, Histórico vazio, busca sem resultado e Relatório vazio | 28/11/2026 |
 | Acabamento: atalhos do Relatório explicados, painel com Salvar primário, login sem frase e compacto, plural certo, contêiner centralizado, títulos de cartão, Histórico | 28/11/2026 |
+| Histórico com rodapé só de contagem; ordem data/criadoEm desc em todas as listas; logo leva à Visão geral; foco só no teclado; atalhos do Relatório até a véspera, datas locais e aviso de data invertida | 28/11/2026 |
 | Bug do valor: "1.000,50" virava R$ 1,00. Agora `parseValor` lê o valor, mostra a prévia e recusa entradas inválidas (lançamentos antigos gravados errado não foram mexidos: o dono apaga e recria) | `c1b79f1` |
