@@ -53,7 +53,8 @@ Dono: Guizera (19, Administração na FGV, São Paulo). Ele está aprendendo: ex
 - Ordem das listas (Histórico, Relatório, PDF, CSV): `ordenarLancamentos` (`src/ordenar.js`) = data decrescente e, no mesmo dia, `criadoEm` decrescente.
 - Logo da barra lateral é um botão ("Ir para a Visão geral") que leva à Visão geral (já nela: volta ao topo). Foco: contorno só em `:focus-visible` (teclado), nunca no clique.
 - Cabeçalho das páginas do app: sempre `src/PageHeader.jsx` (título em Fraunces `clamp(28px, …, 36px)` + subtítulo opcional em DM Sans 16px, ações à direita como o seletor de mês). Fica dentro de `.content`, na borda dos cartões, com 24px (20px no celular) até o 1º cartão. A barra do topo só tem controles globais (ocultar valores, idioma, tema, novo lançamento).
-- Responsivo (1440, 768, 375), sem rolagem lateral, alvos de toque de 44px, contraste nos dois temas, foco de teclado visível.
+- Celular e tema escuro (passada de qualidade, nov/2026): até 900px, botões/menu/abas/atalhos/setas/chips com 44px e campos com 16px (iPhone não dá zoom); até 600px a lista do Histórico e do Relatório (`.table-lanc`) vira blocos (descrição/categoria/data à esquerda, valor e lixeira à direita) e o menu fica numa linha própria; até 400px colunas do gráfico sem espaço entre meses (44px de toque) e menu só com texto. `color-scheme` por tema (campos nativos seguem o tema); placeholders com token (`--color-neutral-500` no escuro, `-400` no claro); o tema salvo é aplicado por um script no `<head>` do `index.html` antes da pintura (sem piscar). Nada de cor fixa em tela: só tokens (as cores fixas ficam só no PDF, que é sempre claro).
+- Responsivo (1440, 768, 375, 320), sem rolagem lateral, alvos de toque de 44px, contraste nos dois temas, foco de teclado visível.
 
 ## Decisões do dono (resumo)
 

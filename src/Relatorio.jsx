@@ -388,7 +388,7 @@ export default function Relatorio({ txs, userEmail, privado, t = {}, lang = "pt"
               [t.saldo || "Saldo", m(saldo)]
             ].map(([l, v]) => (
               <div key={l} className="card-hover card-hover-fixo" style={{ padding: "12px 14px", borderRadius: "var(--radius-md)", background: "var(--color-neutral-900)" }}>
-                <p style={{ margin: 0, fontSize: 10, letterSpacing: "0.1em", textTransform: "uppercase", color: "var(--color-neutral-500)" }}>{l}</p>
+                <p style={{ margin: 0, fontSize: 10, letterSpacing: "0.1em", textTransform: "uppercase", color: "var(--color-neutral-400)" }}>{l}</p>
                 <p style={{ margin: "4px 0 0", fontSize: 16, fontFamily: "var(--font-heading)" }}>{v}</p>
               </div>
             ))}
@@ -400,13 +400,13 @@ export default function Relatorio({ txs, userEmail, privado, t = {}, lang = "pt"
               {porCat.map(c => (
                 <div key={c.id} style={{ marginBottom: 10 }}>
                   <div style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 12, marginBottom: 4 }}>
-                    <span style={{ width: 7, height: 7, borderRadius: 2, background: CAT_COLORS[c.id], flexShrink: 0 }} />
+                    <span style={{ width: 7, height: 7, borderRadius: 2, background: c.cor, flexShrink: 0 }} />
                     <span style={{ flex: 1, color: "var(--color-neutral-400)" }}>{catLabel(c.id)}</span>
                     <span style={{ color: "var(--color-neutral-600)", fontSize: 11 }}>{qtdLanc(c.qtd, t)} · {Math.round((c.total / despesas) * 100)}%</span>
                     <span style={{ color: "var(--color-neutral-200)" }}>{m(c.total)}</span>
                   </div>
                   <div style={{ height: 3, borderRadius: 2, background: "var(--color-neutral-900)" }}>
-                    <div style={{ height: 3, borderRadius: 2, background: CAT_COLORS[c.id], width: (c.total / despesas) * 100 + "%" }} />
+                    <div style={{ height: 3, borderRadius: 2, background: c.cor, width: (c.total / despesas) * 100 + "%" }} />
                   </div>
                 </div>
               ))}
@@ -414,7 +414,7 @@ export default function Relatorio({ txs, userEmail, privado, t = {}, lang = "pt"
           )}
 
           <p className="card-title" style={{ marginBottom: 8 }}>{t.lancamentosLista || "Lançamentos"}</p>
-          <div className="table-scroll"><table className="table">
+          <div className="table-scroll"><table className="table table-lanc">
             <tbody>
               {txPeriodo.map(tx => (
                 <tr key={tx.id}>

@@ -819,7 +819,7 @@ export default function App() {
                     ? <Vazio texto={tr.buscaSemResultado} />
                     : <Vazio texto={tr.mesVazio} botao={tr.novoLancamentoBtn} onBotao={abrirPainel} />
                 ) : (
-                  <table className="table">
+                  <table className="table table-lanc">
                     <thead>
                       <tr><th>{tr.descricao}</th><th>{tr.categoria}</th><th>{tr.data}</th><th style={{ textAlign: "right" }}>{tr.valor}</th><th /></tr>
                     </thead>

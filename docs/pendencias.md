@@ -17,6 +17,9 @@ Sempre respeitar a REGRA DE DADOS do `CLAUDE.md` (nada de gravar no Firebase).
 
 - **Painel de novo lançamento (teste de interface):** substituiu a página Lançar. Falta o dono testar salvar de verdade numa conta de teste (ao salvar: fecha, mostra "Lançamento salvo" e a página atualiza). Se não gostar, para desfazer: `git revert` do commit "Painel de novo lançamento (teste)" (achar com `git log --oneline --grep "Painel de novo"`).
 
+- **Contraste do token `--color-neutral-600` no tema escuro (decisão do dono):** hoje `#8A7C6D` dá 4,32:1 na superfície `#201813` e 3,89:1 em `#2A211B` (abaixo do AA 4,5:1 para texto pequeno: rótulos em caixa alta dos cartões, %, meses do gráfico, datas, "1 lançamento · 60%"). Sugestão: `#968878` (o mesmo valor do `--color-neutral-500` do escuro) → 5,07:1 e 4,57:1. Não foi trocado sem OK, porque muda a paleta.
+- **Testar o painel num iPhone/Android de verdade:** o teclado virtual não dá para simular aqui; o painel tem rolagem própria e margem para o campo focado, mas falta conferir no aparelho.
+
 ## Próximos
 
 - **Firebase App Check** (proteção extra do banco).
@@ -57,4 +60,5 @@ Sempre respeitar a REGRA DE DADOS do `CLAUDE.md` (nada de gravar no Firebase).
 | Histórico com rodapé só de contagem; ordem data/criadoEm desc em todas as listas; logo leva à Visão geral; foco só no teclado; atalhos do Relatório até a véspera, datas locais e aviso de data invertida | 28/11/2026 |
 | Relatório: setas entre ciclos (até o 1º lançamento e até o ciclo de hoje, "em andamento") e dia de pagamento lembrado no navegador | 28/11/2026 |
 | Relatório: atalho selecionado, setas, campos e "Período:" sempre com o mesmo intervalo (fonte única `cicloDatas`) | 28/11/2026 |
+| Passada de qualidade no celular (375/320) e no tema escuro: lista em blocos, menu em linha própria, toque de 44px, campos de 16px, placeholders e textos com contraste AA, `color-scheme`, tema sem piscar | 29/11/2026 |
 | Bug do valor: "1.000,50" virava R$ 1,00. Agora `parseValor` lê o valor, mostra a prévia e recusa entradas inválidas (lançamentos antigos gravados errado não foram mexidos: o dono apaga e recria) | `c1b79f1` |

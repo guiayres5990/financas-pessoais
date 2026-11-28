@@ -3,6 +3,8 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <!-- aplica o tema salvo antes de pintar a página (evita piscar o tema escuro para quem usa o claro) -->
+    <script>try { if (localStorage.getItem("fp_theme") === "light") document.documentElement.setAttribute("data-theme", "light"); } catch (e) {}</script>
     <meta name="description" content="FALC — controle de finanças pessoais simples: lance em segundos, entenda o mês e exporte o relatório em PDF." />
     <link rel="icon" type="image/svg+xml" href="/falc-icone.svg" />
     <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
