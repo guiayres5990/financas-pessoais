@@ -14,6 +14,7 @@ import MenuConta from "./MenuConta";
 import Perfil from "./Perfil";
 import PageHeader from "./PageHeader";
 import PainelLancamento from "./PainelLancamento";
+import { BoasVindas, Vazio } from "./Vazios";
 import { MAX_SUB } from "./subcategorias";
 import { parseValor } from "./parseValor";
 import { T, LANGS, idiomaInicial, normalizarIdioma } from "./i18n";
@@ -92,6 +93,7 @@ export default function App() {
   const [mes, setMes] = useState(new Date().getMonth());
   const [ano, setAno] = useState(new Date().getFullYear());
   const [busca, setBusca] = useState("");
+  const [txsCarregados, setTxsCarregados] = useState(false); // já chegou a 1ª leitura dos lançamentos
   const [privado, setPrivado] = useState(false);
   const [confirmDel, setConfirmDel] = useState(null);
   const [form, setForm] = useState({ tipo: "despesa", valor: "", desc: "", cat: "alimentacao", sub: "", data: hoje() });
@@ -203,7 +205,7 @@ export default function App() {
   useEffect(() => {
     if (!user) return;
     const q = query(collection(db, "transacoes"), where("uid","==",user.uid), orderBy("data","desc"));
-    return onSnapshot(q, snap => setTxs(snap.docs.map(d => ({ id: d.id, ...d.data() }))));
+    return onSnapshot(q, snap => { setTxs(snap.docs.map(d => ({ id: d.id, ...d.data() }))); setTxsCarregados(true); });
   }, [user]);
 
   // Atalhos criados pelo usuário: só where(uid), sem orderBy (ordena aqui no cliente)
@@ -245,6 +247,9 @@ export default function App() {
   const saldo = receitas - despesas;
   const porCat = CATS.map(c => ({ ...c, total: txMes.filter(tx => tx.tipo === "despesa" && tx.cat === c.id).reduce((s, tx) => s + tx.valor, 0) })).filter(c => c.total > 0).sort((a, b) => b.total - a.total);
   const txFiltradas = txMes.filter(tx => busca === "" || tx.desc.toLowerCase().includes(busca.toLowerCase()) || getCat(tx.cat).label.toLowerCase().includes(busca.toLowerCase()) || (tx.sub || "").toLowerCase().includes(busca.toLowerCase()));
+  // telas vazias: conta sem nenhum lançamento (só depois da 1ª leitura) e mês escolhido sem lançamentos
+  const contaVazia = txsCarregados && txs.length === 0;
+  const mesVazio = txMes.length === 0;
 
   // Atalhos da categoria escolhida: prontos (código) + criados pelo usuário (banco)
   // Atalhos da categoria escolhida: só os criados pelo próprio usuário (coleção "subcategorias")
@@ -699,10 +704,15 @@ export default function App() {
                 ))}
               </div>
 
+              {/* conta sem nenhum lançamento (usa os dados já carregados, sem consulta nova): boas-vindas no lugar dos cartões */}
+              {contaVazia ? (
+                <BoasVindas apelido={perfil && perfil.apelido} t={tr} onNovo={abrirPainel} />
+              ) : (
               <div className="dash-row">
                 <div className="card card-hover card-hover-fixo">
                   <p className="card-title">{tr.despesasPorCategoria}</p>
-                  {porCat.length === 0 ? <p className="empty">{tr.nenhuma}</p> : (
+                  {mesVazio ? <Vazio texto={tr.mesVazio} botao={tr.novoLancamentoBtn} onBotao={abrirPainel} />
+                  : porCat.length === 0 ? <p className="empty">{tr.nenhuma}</p> : (
                     <div style={{ display: "flex", gap: 24, alignItems: "center", flexWrap: "wrap" }}>
                       <div className="donut-wrap">
                         <div className="donut" style={{ background: donut }} />
@@ -740,7 +750,9 @@ export default function App() {
                     <span><i style={{ background: "var(--color-negative-bar)" }} />{tr.despesas}</span>
                   </div>
                 </div>
-                {/* cada mês é um botão: mouse, toque ou Tab mostram o tooltip com receitas, despesas e saldo */}
+                {/* sem nada nos 6 meses: só a mensagem; senão o gráfico mostra os outros meses normalmente */}
+                {ultimos6.every(m => m.vazio) ? <Vazio texto={tr.mesVazio} /> : (
+                /* cada mês é um botão: mouse, toque ou Tab mostram o tooltip com receitas, despesas e saldo */
                 <div className="bars" role="list" onPointerLeave={e => e.pointerType === "mouse" && setBarraAtiva(null)}>
                   {ultimos6.map((m, i) => {
                     const resumo = `${m.nome}: ${tr.receitas} ${moedaIdioma(m.r)}, ${tr.despesas} ${moedaIdioma(m.d)}, ${tr.saldo} ${moedaIdioma(m.saldo)}`;
@@ -769,13 +781,20 @@ export default function App() {
                     );
                   })}
                 </div>
+                )}
                 </div>
               </div>
+              )}
             </div>
           )}
 
           {view === "historico" && (
             <div style={{ display: "grid", gap: 16 }}>
+              {contaVazia ? (
+                <div className="card vazio-card">
+                  <Vazio falcao titulo={tr.historicoVazioTitulo} texto={tr.historicoVazioTexto} botao={tr.novoLancamentoBtn} onBotao={abrirPainel} />
+                </div>
+              ) : (<>
               <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
                 <div className="search">
                   <i className="ph ph-magnifying-glass" style={{ fontSize: 16, color: "var(--color-neutral-600)" }} />
@@ -783,7 +802,11 @@ export default function App() {
                 </div>
               </div>
               <div className="card table-scroll" style={{ padding: "8px 12px" }}>
-                {txFiltradas.length === 0 ? <p className="empty">{tr.nenhumLanc}</p> : (
+                {txFiltradas.length === 0 ? (
+                  busca.trim() && txMes.length > 0
+                    ? <Vazio texto={tr.buscaSemResultado} />
+                    : <Vazio texto={tr.mesVazio} botao={tr.novoLancamentoBtn} onBotao={abrirPainel} />
+                ) : (
                   <table className="table">
                     <thead>
                       <tr><th>{tr.descricao}</th><th>{tr.categoria}</th><th>{tr.data}</th><th style={{ textAlign: "right" }}>{tr.valor}</th><th /></tr>
@@ -817,6 +840,7 @@ export default function App() {
               <p style={{ margin: 0, fontSize: 12, color: "var(--color-neutral-600)" }}>
                 {txMes.length} {tr.lancamentos} · {money(despesas)} {tr.despesas.toLowerCase()}
               </p>
+              </>)}
             </div>
           )}
 

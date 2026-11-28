@@ -575,6 +575,29 @@ a.card-hover, button.card-hover, .card-hover[role="button"] { cursor: pointer; }
 .aviso-flutuante i { font-size: 18px; color: var(--color-accent); }
 @media (prefers-reduced-motion: reduce) { .aviso-flutuante { transition: opacity 200ms ease; transform: translate(-50%, 0); } }
 
+/* ── telas vazias (src/Vazios.jsx) ────────────────────── */
+/* boas-vindas da Visão geral (conta sem lançamentos): sombra de repouso, sem hover (não é clicável) */
+.boas-vindas { position: relative; display: grid; justify-items: start; gap: 14px; padding: 32px; border-radius: var(--radius-lg); background: var(--color-surface); box-shadow: var(--shadow-card); }
+.boas-vindas-falcao { position: absolute; top: 24px; right: 24px; opacity: 0.45; pointer-events: none; }
+.boas-vindas-falcao svg { display: block; height: 44px; width: auto; }
+.boas-vindas-titulo { margin: 0; padding-right: 64px; font-size: clamp(26px, 20px + 1.6vw, 34px); line-height: 1.15; }
+.boas-vindas-texto { margin: 0; max-width: 46ch; font-size: 16px; color: var(--color-neutral-400); }
+.boas-vindas-passos { list-style: none; margin: 14px 0 0; padding: 18px 0 0; width: 100%; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; border-top: 1px solid var(--color-divider); }
+.boas-vindas-passos li { display: flex; align-items: flex-start; gap: 12px; min-width: 0; }
+.boas-vindas-icone { flex: none; width: 40px; height: 40px; display: grid; place-items: center; border-radius: 12px; background: var(--color-accent-900); color: var(--color-accent-200); font-size: 20px; }
+.boas-vindas-passos p { margin: 0; }
+.boas-vindas-passo-t { font-size: 15px; font-weight: 600; color: var(--color-text); }
+.boas-vindas-passo-d { margin-top: 2px !important; font-size: 13px; color: var(--color-neutral-400); }
+/* mensagem de vazio dentro de cartões (mês vazio, Histórico, busca, Relatório) */
+.vazio { display: grid; justify-items: center; gap: 10px; padding: 32px 16px; text-align: center; }
+.vazio-falcao { opacity: 0.45; }
+.vazio-falcao svg { display: block; height: 48px; width: auto; }
+.vazio-titulo { margin: 4px 0 0; font-family: var(--font-display); font-weight: 500; font-optical-sizing: none; font-variation-settings: "opsz" 36, "SOFT" 0, "WONK" 0; font-size: 22px; color: var(--color-text); }
+.vazio-texto { margin: 0; max-width: 36ch; font-size: 14px; color: var(--color-neutral-400); }
+.vazio-btn { min-height: 44px; padding-inline: 18px; gap: 8px; }
+.vazio-card { box-shadow: var(--shadow-card); }
+.dash-grafico > .vazio { flex: 1; align-content: center; }
+
 @media (max-width: 900px) {
   .hero, .dash-row, .auth { grid-template-columns: 1fr; }
   .hero { padding: 48px 20px 64px; gap: 32px; }
@@ -614,6 +637,10 @@ a.card-hover, button.card-hover, .card-hover[role="button"] { cursor: pointer; }
   .page-header { margin-bottom: 20px; }
   .topbar-novo { display: none; }
   .bars { gap: 10px; } /* colunas mais largas para tocar */
+  .boas-vindas { padding: 22px 18px; }
+  .boas-vindas-falcao { top: 18px; right: 18px; }
+  .boas-vindas-falcao svg { height: 34px; }
+  .boas-vindas .vazio-btn { width: 100%; }
   .bars-tip { min-width: 0; padding: 9px 10px; }
   .fab-novo { display: grid; }
   .content { padding-bottom: 104px; } /* espaço para o botão flutuante não cobrir o fim da página */
@@ -630,4 +657,7 @@ a.card-hover, button.card-hover, .card-hover[role="button"] { cursor: pointer; }
   .perfil-card { padding: 18px; }
   .perfil-conta { grid-template-columns: minmax(0, 1fr); gap: 20px; }
   .perfil-avatar { order: -1; }
+}
+@media (max-width: 600px) {
+  .boas-vindas-passos { grid-template-columns: minmax(0, 1fr); gap: 14px; }
 }

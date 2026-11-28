@@ -55,6 +55,7 @@ Dono: Guizera (19, Administração na FGV, São Paulo). Ele está aprendendo: ex
 - CPF, telefone, nascimento e foto são opcionais. Foto sem Firebase Storage.
 - Novo lançamento é um **painel** (`src/PainelLancamento.jsx`; TESTE, para desfazer: `git revert` do commit "Painel de novo lançamento (teste)" (achar com `git log --oneline --grep "Painel de novo"`)): botão "Novo lançamento" do topo (no celular, botão flutuante "+" de 56px) abre lateral de 440px à direita (celular: tela cheia de baixo), sobre qualquer página. Não existe mais a aba/página Lançar; `#/lancar` vai para a Visão geral e abre o painel. Com algo preenchido, fundo/Esc/✕ perguntam "Descartar o lançamento?" dentro do painel (nunca `window.confirm`); Cancelar fecha direto. Salvou: fecha e mostra "Lançamento salvo". Sem a dica "use o mesmo texto para gastos recorrentes".
 - Visão geral: KPIs (receitas, despesas, saldo) e uma linha com "Despesas por categoria" (60%) e "Últimos 6 meses" (40%), mesma altura; empilham até 900px. Sem cartão "Projeção do mês" (removido em nov/2026, com o cálculo e os textos).
+- Telas vazias (`src/Vazios.jsx`): conta sem nenhum lançamento → cartão de boas-vindas no lugar de categorias e gráfico (KPIs com R$ 0,00), com botão que abre o painel; mês vazio → "Nenhum lançamento neste mês." + "Novo lançamento"; Histórico vazio, busca sem resultado e Relatório vazio (PDF desativado) com mensagem própria. Só usam os lançamentos já carregados (`txs`), sem consulta nova ao Firestore. Cartões vazios com sombra de repouso, sem hover.
 - Gráfico "Últimos 6 meses": cada mês é um botão com tooltip (receitas, despesas e saldo no formato do idioma) por mouse, toque ou Tab; mês atual em destaque (rótulo em negrito, barras cheias; anteriores com 50%); mês vazio só com traço neutro.
 - Lançamento: obrigatório escolher um atalho OU escrever um detalhe. Bloco "Do que foi esse lançamento?" com dica neutra; erro em coral só depois de tentar salvar (some ao preencher); sem atalhos na categoria, botão "Crie seu primeiro atalho" em destaque.
 - Sem simulador, sem atalhos prontos, sem seletor de idioma na Política, sem destaque no "Legal" do menu, sem nome pessoal na Política.
@@ -81,7 +82,7 @@ Dono: Guizera (19, Administração na FGV, São Paulo). Ele está aprendendo: ex
 
 ## Arquivos importantes
 
-- `src/App.jsx` (telas, login, perfil, CSV, exclusão de conta), `src/Landing.jsx`, `src/Privacidade.jsx`, `src/Perfil.jsx` + `src/perfilUtil.js` + `src/Avatar.jsx`, `src/MenuConta.jsx`, `src/PageHeader.jsx`, `src/Relatorio.jsx`, `src/Logo.jsx`, `src/i18n.js`, `src/theme.css`, `src/firebase.js` (não mexer), `firestore.rules` (cópia das regras, só leitura), `index.html`, `scripts/gerar-logo.js`.
+- `src/App.jsx` (telas, login, perfil, CSV, exclusão de conta), `src/Landing.jsx`, `src/Privacidade.jsx`, `src/Perfil.jsx` + `src/perfilUtil.js` + `src/Avatar.jsx`, `src/MenuConta.jsx`, `src/PageHeader.jsx`, `src/Vazios.jsx`, `src/Relatorio.jsx`, `src/Logo.jsx`, `src/i18n.js`, `src/theme.css`, `src/firebase.js` (não mexer), `firestore.rules` (cópia das regras, só leitura), `index.html`, `scripts/gerar-logo.js`.
 
 ---
 

@@ -52,4 +52,5 @@ Sempre respeitar a REGRA DE DADOS do `CLAUDE.md` (nada de gravar no Firebase).
 | Cópia das regras v4 em `firestore.rules`; conferido que os campos do app batem com elas | `d9856f5` |
 | App só em português e inglês; gráfico de 6 meses com tooltip, saldo e mês atual | `fbb21e8` |
 | Visão geral sem "Projeção do mês"; categorias (60%) e gráfico de 6 meses (40%) na mesma linha | 27/11/2026 |
+| Telas vazias: boas-vindas na Visão geral, mês vazio, Histórico vazio, busca sem resultado e Relatório vazio | 28/11/2026 |
 | Bug do valor: "1.000,50" virava R$ 1,00. Agora `parseValor` lê o valor, mostra a prévia e recusa entradas inválidas (lançamentos antigos gravados errado não foram mexidos: o dono apaga e recria) | `c1b79f1` |

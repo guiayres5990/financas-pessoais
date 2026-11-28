@@ -1,6 +1,7 @@
 import { useState } from "react";
 import jsPDF from "jspdf";
 import { CATS_BASE, fmt } from "./App";
+import { Vazio } from "./Vazios";
 
 const CICLOS = [1, 5, 10, 15, 20, 25];
 const br = iso => iso.split("-").reverse().join("/");
@@ -280,8 +281,11 @@ export default function Relatorio({ txs, userEmail, privado, t = {} }) {
             <input className="input" type="date" value={dataFim}
               onChange={e => { setDataFim(e.target.value); setCicloAtivo(null); }} />
           </div>
-          <button className="btn btn-primary" style={{ padding: "10px 18px", gap: 8 }}
-            disabled={gerando || !txPeriodo.length} onClick={gerarPDF}>
+          {/* sem lançamentos no período: exportar fica desativado (com a dica no title e ligada à mensagem) */}
+          <button className="btn btn-primary" style={{ padding: "10px 18px", gap: 8, minHeight: 44 }}
+            disabled={gerando || !txPeriodo.length} onClick={gerarPDF}
+            title={!txPeriodo.length ? (t.nenhumPeriodo || "") : undefined}
+            aria-describedby={!txPeriodo.length ? "rel-vazio" : undefined}>
             <i className="ph ph-file-pdf" style={{ fontSize: 16 }} />
             {gerando ? (t.gerando || "Gerando…") : (t.gerarPDF || "Gerar PDF")}
           </button>
@@ -289,8 +293,8 @@ export default function Relatorio({ txs, userEmail, privado, t = {} }) {
       </div>
 
       {txPeriodo.length === 0 ? (
-        <div className="card">
-          <p className="empty">{t.nenhumPeriodo || "Nenhum lançamento no período selecionado."}</p>
+        <div className="card vazio-card">
+          <Vazio id="rel-vazio" texto={t.nenhumPeriodo} />
         </div>
       ) : (
         <div className="card">
