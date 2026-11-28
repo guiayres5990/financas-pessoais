@@ -17,7 +17,7 @@ import PainelLancamento from "./PainelLancamento";
 import { BoasVindas, Vazio } from "./Vazios";
 import { MAX_SUB } from "./subcategorias";
 import { parseValor } from "./parseValor";
-import { T, LANGS, idiomaInicial, normalizarIdioma } from "./i18n";
+import { T, LANGS, idiomaInicial, normalizarIdioma, qtdLanc } from "./i18n";
 
 export const CATS_BASE = [
   { id: "moradia",     cor: "var(--cat-moradia)" },
@@ -562,8 +562,8 @@ export default function App() {
               </>
             ) : (
               <>
-                <h3 style={{ margin: "0 0 6px" }}>{authMode === "login" ? tr.entrar : tr.criarConta}</h3>
-                <p className="auth-sub">{tr.tagline}</p>
+                {/* sem subtítulo: a frase de efeito fica só no painel da esquerda */}
+                <h3 className="auth-titulo">{authMode === "login" ? tr.bemVindoVolta : tr.crieSuaConta}</h3>
                 <div className="seg" style={{ marginBottom: 24 }}>
                   {[["login", tr.entrar], ["cadastro", tr.criarConta]].map(([m, l]) => (
                     <button type="button" key={m} className="seg-opt" aria-pressed={authMode === m}
@@ -663,18 +663,21 @@ export default function App() {
       <main style={{ minWidth: 0 }} inert={painel ? "" : undefined}>
         {/* barra do topo: só os controles globais (iguais em todas as páginas, para não mudar de altura) */}
         <div className="topbar">
-          <button className="btn btn-secondary" style={{ gap: 8 }} onClick={() => setPrivado(p => !p)}>
-            <i className={privado ? "ph ph-eye-closed" : "ph ph-eye"} style={{ fontSize: 16 }} />
-            {privado ? tr.mostrarValores : tr.ocultarValores}
-          </button>
-          <LangPicker lang={lang} setLang={setLang} />
-          <button className="btn btn-icon btn-secondary" title="Tema" onClick={() => setDark(d => !d)}>
-            <i className={dark ? "ph ph-sun" : "ph ph-moon"} style={{ fontSize: 16 }} />
-          </button>
-          <button ref={botaoNovoRef} className="btn btn-primary topbar-novo" style={{ gap: 8 }} onClick={abrirPainel}
-            aria-haspopup="dialog" aria-expanded={painel}>
-            <i className="ph ph-plus" style={{ fontSize: 15 }} /> {tr.novoLancamentoBtn}
-          </button>
+          {/* mesmo contêiner do conteúdo: o "Novo lançamento" alinha com a borda direita dos cartões */}
+          <div className="topbar-inner">
+            <button className="btn btn-secondary" style={{ gap: 8 }} onClick={() => setPrivado(p => !p)}>
+              <i className={privado ? "ph ph-eye-closed" : "ph ph-eye"} style={{ fontSize: 16 }} />
+              {privado ? tr.mostrarValores : tr.ocultarValores}
+            </button>
+            <LangPicker lang={lang} setLang={setLang} />
+            <button className="btn btn-icon btn-secondary" title="Tema" onClick={() => setDark(d => !d)}>
+              <i className={dark ? "ph ph-sun" : "ph ph-moon"} style={{ fontSize: 16 }} />
+            </button>
+            <button ref={botaoNovoRef} className="btn btn-primary topbar-novo" style={{ gap: 8 }} onClick={abrirPainel}
+              aria-haspopup="dialog" aria-expanded={painel}>
+              <i className="ph ph-plus" style={{ fontSize: 15 }} /> {tr.novoLancamentoBtn}
+            </button>
+          </div>
         </div>
 
         <div className="content">
@@ -691,8 +694,8 @@ export default function App() {
             <div style={{ display: "grid", gap: 16 }}>
               <div className="kpi-row">
                 {[
-                  [tr.receitas, money(receitas), "var(--color-accent-300)", `${txMes.filter(tx => tx.tipo === "receita").length} ${tr.lancamentos}`],
-                  [tr.despesas, money(despesas), "var(--color-negative)", `${txMes.filter(tx => tx.tipo === "despesa").length} ${tr.lancamentos}`],
+                  [tr.receitas, money(receitas), "var(--color-accent-300)", qtdLanc(txMes.filter(tx => tx.tipo === "receita").length, tr)],
+                  [tr.despesas, money(despesas), "var(--color-negative)", qtdLanc(txMes.filter(tx => tx.tipo === "despesa").length, tr)],
                   [tr.saldo, money(saldo), saldo >= 0 ? "var(--color-accent-200)" : "var(--color-negative)", saldo >= 0 ? tr.sobrandoMes : tr.acimaReceita],
                 ].map(([l, v, cor, nota]) => (
                   <div key={l} className="kpi card-hover card-hover-fixo">
@@ -826,9 +829,9 @@ export default function App() {
                           </td>
                           <td style={{ fontSize: 12, color: "var(--color-neutral-600)" }}>{new Date(tx.data + "T12:00:00").toLocaleDateString("pt-BR")}</td>
                           <td className={"num " + (tx.tipo === "receita" ? "pos" : "neg")}>{tx.tipo === "receita" ? "+" : "−"}{money(tx.valor)}</td>
-                          <td style={{ textAlign: "right", width: 40 }}>
-                            <button className="btn btn-icon btn-ghost" title={tr.excluir} onClick={() => setConfirmDel(tx)}>
-                              <i className="ph ph-trash" style={{ fontSize: 15 }} />
+                          <td style={{ textAlign: "right", width: 52 }}>
+                            <button type="button" className="btn btn-icon btn-ghost btn-lixeira" title={tr.excluir} aria-label={tr.excluir + ": " + tx.desc} onClick={() => setConfirmDel(tx)}>
+                              <i className="ph ph-trash" style={{ fontSize: 16 }} aria-hidden="true" />
                             </button>
                           </td>
                         </tr>
@@ -838,7 +841,7 @@ export default function App() {
                 )}
               </div>
               <p style={{ margin: 0, fontSize: 12, color: "var(--color-neutral-600)" }}>
-                {txMes.length} {tr.lancamentos} · {money(despesas)} {tr.despesas.toLowerCase()}
+                {qtdLanc(txMes.length, tr)} · {money(despesas)} {tr.despesas.toLowerCase()}
               </p>
               </>)}
             </div>
@@ -935,10 +938,10 @@ export default function App() {
             </fieldset>
             {lancErr && <p style={{ margin: 0, fontSize: 13, color: "var(--color-negative)" }}>{lancErr}</p>}
             <div style={{ display: "flex", gap: 10, marginTop: 4 }}>
-              <button type="button" className="btn btn-primary" style={{ flex: 1, padding: 11 }} disabled={saving} onClick={addTx}>
+              <button type="button" className="btn btn-cheio painel-acao" style={{ flex: 1 }} disabled={saving} onClick={addTx}>
                 {saving ? tr.salvando : tr.salvar}
               </button>
-              <button type="button" className="btn btn-secondary" style={{ padding: "11px 18px" }} onClick={() => fecharPainelRef.current && fecharPainelRef.current()}>{tr.cancelar}</button>
+              <button type="button" className="btn btn-secondary painel-acao" onClick={() => fecharPainelRef.current && fecharPainelRef.current()}>{tr.cancelar}</button>
             </div>
           </div>
         </PainelLancamento>

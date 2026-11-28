@@ -24,7 +24,7 @@ Sempre respeitar a REGRA DE DADOS do `CLAUDE.md` (nada de gravar no Firebase).
 - **Textos que ainda estão só em português** (deveriam existir em PT/EN):
   - Mensagens de erro do login (`handleAuth` em `src/App.jsx`: "E-mail não encontrado.", "Erro ao autenticar." etc.).
   - `title="Tema"` do botão de tema na barra do app e o "Total" no centro do gráfico de rosca (`src/App.jsx`).
-  - Relatório/PDF (`src/Relatorio.jsx`): "Dia N → N", "lanç.", "Nenhum lançamento no período.", e no PDF "RELATÓRIO FINANCEIRO" e os cabeçalhos da tabela ("DESCRIÇÃO" etc.).
+  - Relatório/PDF (`src/Relatorio.jsx`): no PDF "RELATÓRIO FINANCEIRO" e os cabeçalhos da tabela ("DESCRIÇÃO" etc.).
 
 ## Ideias futuras
 
@@ -53,4 +53,5 @@ Sempre respeitar a REGRA DE DADOS do `CLAUDE.md` (nada de gravar no Firebase).
 | App só em português e inglês; gráfico de 6 meses com tooltip, saldo e mês atual | `fbb21e8` |
 | Visão geral sem "Projeção do mês"; categorias (60%) e gráfico de 6 meses (40%) na mesma linha | 27/11/2026 |
 | Telas vazias: boas-vindas na Visão geral, mês vazio, Histórico vazio, busca sem resultado e Relatório vazio | 28/11/2026 |
+| Acabamento: atalhos do Relatório explicados, painel com Salvar primário, login sem frase e compacto, plural certo, contêiner centralizado, títulos de cartão, Histórico | 28/11/2026 |
 | Bug do valor: "1.000,50" virava R$ 1,00. Agora `parseValor` lê o valor, mostra a prévia e recusa entradas inválidas (lançamentos antigos gravados errado não foram mexidos: o dono apaga e recria) | `c1b79f1` |

@@ -2,6 +2,7 @@ import { useState } from "react";
 import jsPDF from "jspdf";
 import { CATS_BASE, fmt } from "./App";
 import { Vazio } from "./Vazios";
+import { qtdLanc } from "./i18n";
 
 const CICLOS = [1, 5, 10, 15, 20, 25];
 const br = iso => iso.split("-").reverse().join("/");
@@ -61,10 +62,18 @@ export default function Relatorio({ txs, userEmail, privado, t = {} }) {
     .filter(c => c.total > 0)
     .sort((a, b) => b.total - a.total);
 
+  // Atalho "Dia N" (ciclo de quem recebe no dia N): Início = dia N do mês passado, Fim = dia N deste mês.
+  // (comportamento mantido como sempre foi; o rótulo só mostra o período que ele aplica)
+  const cicloDatas = dia => [
+    new Date(hoje.getFullYear(), hoje.getMonth() - 1, dia).toISOString().slice(0, 10),
+    new Date(hoje.getFullYear(), hoje.getMonth(), dia).toISOString().slice(0, 10),
+  ];
+  const diaMes = iso => iso.slice(8, 10) + "/" + iso.slice(5, 7);
   function periodoFixo(dia) {
+    const [ini, fim] = cicloDatas(dia);
     setCicloAtivo(dia);
-    setDataInicio(new Date(hoje.getFullYear(), hoje.getMonth() - 1, dia).toISOString().slice(0, 10));
-    setDataFim(new Date(hoje.getFullYear(), hoje.getMonth(), dia).toISOString().slice(0, 10));
+    setDataInicio(ini);
+    setDataFim(fim);
   }
 
   const catLabel = id => {
@@ -148,7 +157,7 @@ export default function Relatorio({ txs, userEmail, privado, t = {} }) {
 
     // Stats rápidas
     const stats = [
-      [String(txPeriodo.length), t.lancamentosPeriodo || "lançamentos"],
+      [String(txPeriodo.length), txPeriodo.length === 1 ? t.lancPeriodoUm : t.lancamentosPeriodo],
       [m(despesas / dias), t.mediaDiaria || "média diária"],
       [m(maiorDesp), t.maiorDespesa || "maior despesa"],
     ];
@@ -186,7 +195,7 @@ export default function Relatorio({ txs, userEmail, privado, t = {} }) {
         pdf.setFont("helvetica", "normal");
         pdf.text(catLabel(c.id), M + 5, y + 2.5);
         pdf.setTextColor(117, 103, 90);
-        pdf.text(c.qtd + " lanç. · " + Math.round((c.total / despesas) * 100) + "%", M + 60, y + 2.5);
+        pdf.text(qtdLanc(c.qtd, t) + " · " + Math.round((c.total / despesas) * 100) + "%", M + 60, y + 2.5);
         pdf.setTextColor(31, 24, 18);
         pdf.setFont("helvetica", "bold");
         pdf.text(m(c.total), W - M - pdf.getTextWidth(m(c.total)), y + 2.5);
@@ -263,12 +272,21 @@ export default function Relatorio({ txs, userEmail, privado, t = {} }) {
     <div style={{ display: "grid", gridTemplateColumns: "minmax(0, 1fr)", gap: 16, maxWidth: 820 }}>
       <div className="card card-hover card-hover-fixo" style={{ display: "grid", gap: 16 }}>
         <p className="card-title" style={{ margin: 0 }}>{t.periodoRelatorio || "Período do relatório"}</p>
-        <div className="chips">
-          {CICLOS.map(d => (
-            <button key={d} className="chip" aria-pressed={cicloAtivo === d} onClick={() => periodoFixo(d)}>
-              Dia {d} → {d}
-            </button>
-          ))}
+        <div className="ciclo">
+          <p id="ciclo-rotulo" className="ciclo-rotulo">{t.cicloRotulo}</p>
+          <div className="chips" role="group" aria-labelledby="ciclo-rotulo">
+            {CICLOS.map(d => {
+              const [ini, fim] = cicloDatas(d);
+              const periodo = `${diaMes(ini)} ${t.cicloAte} ${diaMes(fim)}`;
+              return (
+                <button key={d} type="button" className="chip chip-ciclo" aria-pressed={cicloAtivo === d}
+                  title={periodo} aria-label={`${t.cicloDia} ${d}: ${periodo}`} onClick={() => periodoFixo(d)}>
+                  <span className="chip-ciclo-dia">{t.cicloDia} {d}</span>
+                  <span className="chip-ciclo-periodo">{periodo}</span>
+                </button>
+              );
+            })}
+          </div>
         </div>
         <div className="rel-periodo">
           <div className="field">
@@ -320,7 +338,7 @@ export default function Relatorio({ txs, userEmail, privado, t = {} }) {
                   <div style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 12, marginBottom: 4 }}>
                     <span style={{ width: 7, height: 7, borderRadius: 2, background: CAT_COLORS[c.id], flexShrink: 0 }} />
                     <span style={{ flex: 1, color: "var(--color-neutral-400)" }}>{catLabel(c.id)}</span>
-                    <span style={{ color: "var(--color-neutral-600)", fontSize: 11 }}>{c.qtd} lanç. · {Math.round((c.total / despesas) * 100)}%</span>
+                    <span style={{ color: "var(--color-neutral-600)", fontSize: 11 }}>{qtdLanc(c.qtd, t)} · {Math.round((c.total / despesas) * 100)}%</span>
                     <span style={{ color: "var(--color-neutral-200)" }}>{m(c.total)}</span>
                   </div>
                   <div style={{ height: 3, borderRadius: 2, background: "var(--color-neutral-900)" }}>

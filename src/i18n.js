@@ -8,7 +8,6 @@ export const T = {
   pt: {
     // app
     appName: "FALC",
-    tagline: "Controle seu dinheiro com inteligência",
     // nav
     dashboard: "Visão geral",
     historico: "Histórico",
@@ -19,7 +18,9 @@ export const T = {
     saldo: "Saldo",
     despesasPorCategoria: "Despesas por categoria",
     ultimos6: "Últimos 6 meses",
-    lancamentos: "lançamento(s)",
+    lancUm: "lançamento",
+    lancVarios: "lançamentos",
+    lancPeriodoUm: "lançamento no período",
     sobrandoMes: "sobrando neste mês",
     acimaReceita: "acima da receita",
     noDentroOrcamento: "Dentro do orçamento",
@@ -79,6 +80,11 @@ export const T = {
     ocultarValores: "Ocultar valores",
     mostrarValores: "Mostrar valores",
     novoLancamentoBtn: "Novo lançamento",
+    cicloRotulo: "Ciclo de pagamento: recebo no dia",
+    cicloDia: "Dia",
+    cicloAte: "a",
+    bemVindoVolta: "Bem-vindo de volta",
+    crieSuaConta: "Crie sua conta",
     boasVindasTitulo: "Bem-vindo ao FALC, {nome}!",
     boasVindasTituloSemNome: "Bem-vindo ao FALC!",
     boasVindasTexto: "Anote seu primeiro gasto ou receita e veja para onde seu dinheiro vai.",
@@ -301,7 +307,6 @@ export const T = {
 
   en: {
     appName: "FALC",
-    tagline: "Control your money with intelligence",
     dashboard: "Overview",
     historico: "History",
     relatorio: "Report",
@@ -310,7 +315,9 @@ export const T = {
     saldo: "Balance",
     despesasPorCategoria: "Expenses by category",
     ultimos6: "Last 6 months",
-    lancamentos: "entry(ies)",
+    lancUm: "entry",
+    lancVarios: "entries",
+    lancPeriodoUm: "entry in period",
     sobrandoMes: "left this month",
     acimaReceita: "above income",
     noDentroOrcamento: "Within budget",
@@ -364,6 +371,11 @@ export const T = {
     ocultarValores: "Hide values",
     mostrarValores: "Show values",
     novoLancamentoBtn: "New entry",
+    cicloRotulo: "Pay cycle: I get paid on day",
+    cicloDia: "Day",
+    cicloAte: "to",
+    bemVindoVolta: "Welcome back",
+    crieSuaConta: "Create your account",
     boasVindasTitulo: "Welcome to FALC, {nome}!",
     boasVindasTituloSemNome: "Welcome to FALC!",
     boasVindasTexto: "Log your first expense or income and see where your money goes.",
@@ -592,3 +604,6 @@ export function idiomaInicial() {
   const nav = typeof navigator !== "undefined" ? String(navigator.language || "") : "";
   return nav.toLowerCase().startsWith("es") ? "en" : "pt";
 }
+
+// "1 lançamento" / "3 lançamentos" (EN: "1 entry" / "3 entries")
+export const qtdLanc = (n, t) => `${n} ${n === 1 ? t.lancUm : t.lancVarios}`;
